@@ -1,8 +1,0 @@
-
-class FewNode {
-
-}
-
-class FewComponent {
-
-}

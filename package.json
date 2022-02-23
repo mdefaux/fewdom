@@ -2,8 +2,9 @@
   "name": "fewdom",
   "version": "1.0.0",
   "description": "Few lines for dom state management",
-  "main": "index.js",
+  "main": "static/src/FewDom.js",
   "scripts": {
+    "start": "node --use_strict index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -11,7 +12,7 @@
     "url": "git+https://github.com/mdefaux/fewdom.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "Maurice Defaux",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/mdefaux/fewdom/issues"
