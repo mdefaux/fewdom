@@ -3,7 +3,7 @@
  * Debugger will break at assertion failure before throwing an exception
  * @usage _de&&assert( myTestCondition, "optional failure message" );
  */
-let _de = false;
+let _de = true;
 function assert(condition, message, noException ) {
     if (condition === false || condition === null || condition === undefined) {
       debugger;
@@ -128,7 +128,7 @@ class FewNode {
   
       if( inner !== undefined && inner !== this.inner ) // virtualNode.$.innerHTML )
       {
-          this.nextInner = inner;
+        virtualNode.nextInner = inner;
         // divCom.$.innerHTML = inner;
       }
   
@@ -221,6 +221,10 @@ class FewNode {
             let count = this.childrenSeq.reduce( (cnt, prev) => (prev.name === ChildClass.name? cnt+1 : cnt ), 0 )
             id = `${ChildClass.name}#${count}`;
         }
+        // if( !id )
+        //     id = `n${this.childrenSeq.length}`; // sets an id determined by index
+
+        // finds the node in children map by id
         let virtualNode = this.children[ id ];
 
         if( !virtualNode )
@@ -256,18 +260,28 @@ class FewNode {
         if( !this.dom )
         {
             if( this.tagName )
-                this.dom = FewNode.create( this.tagName );
+                this.dom = document.createElement(this.tagName );
+            else if( this.xml )
+                this.dom = FewNode.create( this.xml );
         }
+        _de&&assert( this.dom );
+        // changes innerHTML
+        if( this.nextInner !== undefined && this.nextInner !== this.dom.innerHTML )
+        {
+            this.dom.innerHTML = this.nextInner;
+            this.nextInner = undefined;
+        }
+
         // changes attributes
-        console.log( this.attrs );
-        console.log( this.nextAttrs );
+        // console.log( this.attrs );
+        // console.log( this.nextAttrs );
         
         // updates children
-        console.log( this.childrenSeq );
+        // console.log( this.childrenSeq );
         let newIdMap = this.childrenSeq.reduce( (idMap, ch, index) => {
 
             // TODO: looks for next dom element
-            let nextDom = this.dom.nodeElements[ index ];
+            let nextDom = this.dom.childNodes[ index ];
 
             let childDom = ch.apply();
             this.dom.appendChild( childDom );

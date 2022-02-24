@@ -7,9 +7,23 @@
         {
             "type": "pwa-chrome",
             "request": "launch",
-            "name": "Base index.html",
+            "name": "localhost index.html",
+            "url": "http://localhost:4000/examples/base/index.html",
+            "webRoot": "${workspaceFolder}/static",
+            "sourceMaps": true,
+            "sourceMapPathOverrides": {
+                "*": "${webRoot}/*"
+            }
+        },
+        {
+            "type": "pwa-chrome",
+            "request": "launch",
+            "name": "File index.html",
             "file": "c:\\Users\\maurice.defaux\\Projects\\fewdom\\static\\examples\\base\\index.html",
-            "url": "http://localhost:4000/examples/base/index.html"
+            "sourceMaps": true,
+            "sourceMapPathOverrides": {
+                "*": "${workspaceFolder}/static/*"
+            }
         }
     ]
 }
