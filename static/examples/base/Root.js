@@ -17,7 +17,14 @@ class Root extends FewComponent
 // gets the root node element and appends the Root component
 window.onload = function() {
     FewNode.select( "#root" )
-        .div()
+        .div( { 
+            style: { 
+                border: "1px solid black", 
+                borderRadius: "4px", 
+                backgroundColor: "#EEEEFF",
+                width: "50%",
+                padding: "10px"
+            } } )
             .label$( {}, "Base example" )  // { inner: "Base example" } 
         .$div()
         .apply();

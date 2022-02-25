@@ -171,6 +171,8 @@ class FewNode {
   
     setAttributes ( attribs )
     {
+        _de&&assert( attribs );
+        _de&&assert( this.dom );
       Object.entries( attribs ).forEach( ([name,value]) => {
         // special attributes
         if( name === "render" )
@@ -184,21 +186,30 @@ class FewNode {
   
         var oldStyleName = "on" + name.charAt(2).toLowerCase() + name.slice(3);
         // checks for handler
-        if( oldStyleName in this.$ )
+        if( oldStyleName in this.dom )
         {
-          this.$[ oldStyleName ] = value;
+          this.dom[ oldStyleName ] = value;
           return;
         }
         
-        if( name in this.$ )
-        {
-          this.$[ name ] = value;
-          return;
-        }
+        // if( name in this.dom )
+        // {
+        //   this.dom[ name ] = value;
+        //   return;
+        // }
         
         if( name === "classes" )
         {
-          this.$.setAttribute("class", value);
+          this.dom.setAttribute("class", value);
+          return;
+        }
+
+        if( name === "style" )
+        {
+            //   this.dom.style = value;
+          Object.entries( value ).forEach( ([styleKey,styleValue]) => {
+            this.dom.style[styleKey] = styleValue;
+          });
           return;
         }
   
@@ -208,7 +219,7 @@ class FewNode {
           return;
         }
   
-        this.$.setAttribute(name, value);
+        this.dom.setAttribute(name, value);
       });
     }
 
@@ -275,6 +286,7 @@ class FewNode {
         // changes attributes
         // console.log( this.attrs );
         // console.log( this.nextAttrs );
+        this.setAttributes( this.nextAttrs || {} );
         
         // updates children
         // console.log( this.childrenSeq );
