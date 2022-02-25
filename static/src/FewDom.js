@@ -12,11 +12,18 @@ function assert(condition, message, noException ) {
     }
 }
 
-/**Deep equal facility 
+/**
  * 
  */
 const SetHelper = {
     _MAX_DEEP_EQAULITY_DEPTH: 16,
+    /**Deep equal facility 
+     * 
+     * @param {*} a 
+     * @param {*} b 
+     * @param {*} maxDepth used to avoid infinite loop in circular references
+     * @returns 
+     */
     deepDifference( a, b, maxDepth )
     {
         if( maxDepth === undefined ) maxDepth = this._MAX_DEEP_EQAULITY_DEPTH;
@@ -78,13 +85,25 @@ class FewNode {
         return this;
     }
 
+    /**Sets the wrapper attributes.
+     * Only changing attributes will be applied.
+     * 
+     * @param {*} attrs 
+     */
     setAttrs( attrs )
     {
-        if( attrs?.id )
+        if( attrs?.id ) // as a special attrib id is handled separately
             this.id;
+        // compares the new attributes to actuals: only differences will be stored in 'nextAttrs'
         this.nextAttrs = SetHelper.deepDifference( this.attrs, attrs || {} );
     }
 
+    /**Query select an existing DOM element and return a 
+     * wrap reference to it.
+     * 
+     * @param {string} querySelector 
+     * @returns FewNode wrapper pointing to selected element
+     */
     static select( querySelector ){
         var n = document.querySelector(querySelector);
         _de&&assert( n );
@@ -93,11 +112,25 @@ class FewNode {
         return wrapped;
     }
 
+    /**Creates a DOM element from an xml string
+     * 
+     * @param {*} xmlString 
+     * @returns a DOM element
+     */
     static create( xmlString )
     {
       let parser = new DOMParser();
       let doc = parser.parseFromString(xmlString, "text/html");
       return doc.firstChild.childNodes[1].firstChild;
+    }
+
+    static documentRoot( rootComponentClass )
+    {
+        window.onload = ()=>{
+            let root= new FewNode()
+            root.setup( document.body );
+            root.child( rootComponentClass ).apply();
+        }
     }
 
     /**Creates or modify a tag element children of this node element.
@@ -169,58 +202,60 @@ class FewNode {
     // Array.prototype.forEach.call( ["source", "meta", "param", "track", "input", "br", "img", "div"], 
     // (t) => { this[t] = function( attribs, inner ){ return this.tag( t, attribs, inner ); } } );
   
-    setAttributes ( attribs )
+    _applyAttributes ( attribs )
     {
         _de&&assert( attribs );
         _de&&assert( this.dom );
-      Object.entries( attribs ).forEach( ([name,value]) => {
-        // special attributes
-        if( name === "render" )
-        {
-          value( this );        // executes immediatly the render function
-          return;
-        }
-  
-        // TODO: checks if attribute didn't change
-  
-  
-        var oldStyleName = "on" + name.charAt(2).toLowerCase() + name.slice(3);
-        // checks for handler
-        if( oldStyleName in this.dom )
-        {
-          this.dom[ oldStyleName ] = value;
-          return;
-        }
-        
-        // if( name in this.dom )
-        // {
-        //   this.dom[ name ] = value;
-        //   return;
-        // }
-        
-        if( name === "classes" )
-        {
-          this.dom.setAttribute("class", value);
-          return;
-        }
+        Object.entries( attribs ).forEach( ([name,value]) => {
+            // special attributes
+            if( name === "render" )
+            {
+                value( this );        // executes immediatly the render function
+                return;
+            }
+    
+            // TODO: checks if attribute didn't change
+    
+    
+            var oldStyleName = "on" + name.charAt(2).toLowerCase() + name.slice(3);
+            // checks for handler
+            if( oldStyleName in this.dom )
+            {
+                this.dom[ oldStyleName ] = value;
+                return;
+            }
+            
+            // if( name in this.dom )
+            // {
+            //   this.dom[ name ] = value;
+            //   return;
+            // }
+            
+            if( name === "classes" )
+            {
+                this.dom.setAttribute("class", value);
+                return;
+            }
 
-        if( name === "style" )
-        {
-            //   this.dom.style = value;
-          Object.entries( value ).forEach( ([styleKey,styleValue]) => {
-            this.dom.style[styleKey] = styleValue;
-          });
-          return;
-        }
-  
-        if( name in this )
-        {
-          this[ name ]( value );
-          return;
-        }
-  
-        this.dom.setAttribute(name, value);
-      });
+            if( name === "style" )
+            {
+                //   this.dom.style = value;
+                Object.entries( value ).forEach( ([styleKey,styleValue]) => {
+                    this.dom.style[styleKey] = styleValue;
+                });
+                return;
+            }
+    
+            if( name in this )
+            {
+                this[ name ]( value );
+                return;
+            }
+    
+            this.dom.setAttribute(name, value);
+        });
+
+        this.attrs = attribs;
     }
 
     child( ChildClass, attrs ){
@@ -286,7 +321,7 @@ class FewNode {
         // changes attributes
         // console.log( this.attrs );
         // console.log( this.nextAttrs );
-        this.setAttributes( this.nextAttrs || {} );
+        this._applyAttributes( this.nextAttrs || {} );
         
         // updates children
         // console.log( this.childrenSeq );

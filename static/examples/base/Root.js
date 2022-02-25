@@ -25,7 +25,7 @@ window.onload = function() {
                 width: "50%",
                 padding: "10px"
             } } )
-            .label$( {}, "Base example" )  // { inner: "Base example" } 
+            .label$( {}, "Basic example" )  // { inner: "Base example" } 
         .$div()
         .apply();
 
