@@ -44,7 +44,7 @@ const SetHelper = {
             if( !b[key] )
                 return {...p, key: undefined }; // property cancellation
             // checks recursiverly: if false, there are no deep differences
-            let recursive = deepDifference( val, b[key], maxDepth-1 );
+            let recursive = SetHelper.deepDifference( val, b[key], maxDepth-1 );
             return typeof recursive === "object" && Object.keys(recursive).length === 0 ? p : {...p, key: recursive};
         }, {} );
 
@@ -72,15 +72,14 @@ class FewNode {
         this.def = def;
 
         this.children = {};
-        this.childIndex = 0;
         this.childrenSeq = [];
 
-        Array.prototype.forEach.call( ["div", "input", "label", "span", "form", "textarea", "img", "a", 
-            "button", "select", "option", "ul", "ol", "li", "canvas"], 
-        (t) => { 
-            this[t] = function( attribs, inner ){ return this.tagOpen( t, attribs, inner ); } 
-            this[`${t}$`] = function( attribs, inner ){ return this.tagVoid( t, attribs, inner ); } 
-        } );
+        // Array.prototype.forEach.call( ["div", "input", "label", "span", "form", "textarea", "img", "a", 
+        //     "button", "select", "option", "ul", "ol", "li", "canvas"], 
+        // (t) => { 
+        //     this[t] = function( attribs, inner ){ return this.tagOpen( t, attribs, inner ); } 
+        //     this[`${t}$`] = function( attribs, inner ){ return this.tagVoid( t, attribs, inner ); } 
+        // } );
 
         return this;
     }
@@ -96,6 +95,12 @@ class FewNode {
             this.id;
         // compares the new attributes to actuals: only differences will be stored in 'nextAttrs'
         this.nextAttrs = SetHelper.deepDifference( this.attrs, attrs || {} );
+    }
+
+    static empty() {
+        var n = new FewNode();
+        n.setup();
+        return n;
     }
 
     /**Query select an existing DOM element and return a 
@@ -124,12 +129,13 @@ class FewNode {
       return doc.firstChild.childNodes[1].firstChild;
     }
 
-    static documentRoot( rootComponentClass )
+    static documentRoot( rootComponentClass, attrs )
     {
         window.onload = ()=>{
             let root= new FewNode()
             root.setup( document.body );
-            root.child( rootComponentClass ).apply();
+            root.child( rootComponentClass, attrs );
+            root.apply();
         }
     }
 
@@ -142,8 +148,8 @@ class FewNode {
      */
     tag( tagName, attributes, inner )
     {
-      let index = this.childIndex;
-      let id = ( attributes && attributes.id ) || (`${tagName}-${this.id}-${index}`);
+      let id = ( attributes && attributes.id ); // || (`${tagName}-${this.id}-${index}`);
+      let tagId = (`${tagName}-${this.childrenSeq.length}`);
       let virtualNode = this.children[id];
   
       // TODO: checks if tag is the same of stored one
@@ -198,6 +204,14 @@ class FewNode {
       return this;
     }
   
+    child$( childObject, attributes, inner )
+    {
+      this.child( childObject, attributes, inner );
+  
+      // closure tag returns to the component parent (actually 'this' component).
+      return this;
+    }
+  
   
     // Array.prototype.forEach.call( ["source", "meta", "param", "track", "input", "br", "img", "div"], 
     // (t) => { this[t] = function( attribs, inner ){ return this.tag( t, attribs, inner ); } } );
@@ -217,7 +231,9 @@ class FewNode {
             // TODO: checks if attribute didn't change
     
     
-            var oldStyleName = "on" + name.charAt(2).toLowerCase() + name.slice(3);
+            var oldStyleName = "on" + name.charAt(2).toLowerCase() + name.slice(3).toLowerCase();
+            // var oldStyleName = name.toLowerCase();
+
             // checks for handler
             if( oldStyleName in this.dom )
             {
@@ -246,11 +262,11 @@ class FewNode {
                 return;
             }
     
-            if( name in this )
-            {
-                this[ name ]( value );
-                return;
-            }
+            // if( name in this )
+            // {
+            //     this[ name ]( value );
+            //     return;
+            // }
     
             this.dom.setAttribute(name, value);
         });
@@ -271,14 +287,16 @@ class FewNode {
         //     id = `n${this.childrenSeq.length}`; // sets an id determined by index
 
         // finds the node in children map by id
-        let virtualNode = this.children[ id ];
+        let virtualNode = this.children?.[ id ];
 
         if( !virtualNode )
         {
-            if( ChildClass.name )  // if it is a class
+            // if( ChildClass.name )  // if it is a class
+            // if( ChildClass instanceof FewComponent )
+            if( ChildClass.name && ChildClass.constructor )
             {
                 virtualNode = new ChildClass();
-                virtualNode.name = ChildClass.name;
+                virtualNode.classname = ChildClass.name;
             }
             else if( typeof ChildClass === 'string' )
             {
@@ -301,17 +319,66 @@ class FewNode {
     replace( ChildClass, attrs ){
     }
 
-    apply(){
+    repeat$( array )
+    {
+        let e = e$();
+
+        e.parent = this;
+        e.deferredCallback = (nodeCallback)=>{
+            array.forEach( (el,index) => nodeCallback(el, index) )
+        }
+        return e;
+    }
+
+    repeat( array )
+    {
+        let e = e$();
+
+        e.parent = this;
+        e.$repeat = () => {
+
+            array?.forEach( (el,index) => {
+
+                let nextAttrs = typeof e.getNode().nextAttrs === 'function' ?
+                    e.getNode().nextAttrs(el, index) : e.getNode().nextAttrs;
+                
+                if( ! nextAttrs?.key )
+                {
+                    console.warn( `Repeated objects should have a key attributes.`)
+                }
+                this.child( e.copy().getNode(), nextAttrs );
+            } );
+
+            return this;
+        };
+        return e;
+    }
+
+    copy( dest )
+    {
+        dest = dest || e$();
+
+        dest.tagName = this.tagName;
+        dest.childrenSeq = [...this.childrenSeq.map( (e)=>( e.copy() ))];
+
+        return dest;
+    }
+
+
+
+    apply( incomingNode )
+    {
         // creates if not exists
         if( !this.dom )
         {
             if( this.tagName )
-                this.dom = document.createElement(this.tagName );
+                this.dom = document.createElement( this.tagName );
             else if( this.xml )
                 this.dom = FewNode.create( this.xml );
         }
         _de&&assert( this.dom );
         // changes innerHTML
+        this.nextInner = incomingNode?.nextInner || this.nextInner;
         if( this.nextInner !== undefined && this.nextInner !== this.dom.innerHTML )
         {
             this.dom.innerHTML = this.nextInner;
@@ -321,20 +388,65 @@ class FewNode {
         // changes attributes
         // console.log( this.attrs );
         // console.log( this.nextAttrs );
-        this._applyAttributes( this.nextAttrs || {} );
+        this._applyAttributes( {
+            ...this.nextAttrs || {}, ...incomingNode?.nextAttrs  } );
         
-        // updates children
-        // console.log( this.childrenSeq );
-        let newIdMap = this.childrenSeq.reduce( (idMap, ch, index) => {
+        let newIdMap;
+        if( !incomingNode ) 
+        {
+            // updates children
+            // console.log( this.childrenSeq );
+            newIdMap = this.childrenSeq.reduce( (idMap, ch, index) => {
 
-            // TODO: looks for next dom element
-            let nextDom = this.dom.childNodes[ index ];
+                // TODO: looks for next dom element
+                let nextDom = this.dom.childNodes[ index ];
 
-            let childDom = ch.apply();
-            this.dom.appendChild( childDom );
+                ch.index = index;
+                let childDom = ch.apply();
+                this.dom.appendChild( childDom );
 
-            return {...idMap, [ch.id]: ch };
-        }, {} );
+                return {...idMap, [ch.id]: ch };
+            }, {} );
+
+        }
+        else 
+        {
+            let childrenSeq = Object.entries( this.children )
+                .sort( ([,a], [,b] ) => (a.index - b.index))
+                .map( ([,child] ) => (child));
+            newIdMap = incomingNode.childrenSeq.reduce( (idMap, ch, index) => {
+
+                // tries a match
+                if( this.children[ ch.id ] )
+                {
+                    // if position does not match
+                    if( this.children[ ch.id ].index > index )
+                    {
+                        // moves here
+                        // updates index
+                    }
+                    this.children[ ch.id ].apply( ch );
+                    return {...idMap, [ch.id]: this.children[ ch.id ] };
+                }
+
+                // TODO: looks for next dom element
+                let nextDom = this.dom.childNodes[ index ];
+                let nextChild = childrenSeq[ index ];
+
+                if( nextChild?.tagName === ch.tagName )
+                {
+                    nextChild.apply( ch );
+                    return {...idMap, [ch.id]: nextChild };
+                }
+
+                let childDom = ch.apply();
+                this.dom.appendChild( childDom );
+
+                return {...idMap, [ch.id]: ch };
+            }, {} );
+
+        }
+        this.children = newIdMap;
 
         delete this.childrenSeq;
 
@@ -342,39 +454,223 @@ class FewNode {
     }
 }
 
-class FewComponent extends FewNode {
+class FewEmptyNode extends FewNode
+{
     constructor(){
         super();
     }
+    
+    /**Creates or modify a tag element children of this node element.
+     * 
+     * @param {*} tagName - name of the element tag
+     * @param {*} attributes - attributes of the element
+     * @param {*} inner 
+     * @returns a 
+     */
+     tag( tagName, attributes, inner )
+     {
+        let id = ( attributes && attributes.id );
+
+        this.virtualNode = new FewNode();
+        this.virtualNode.setup( false, id, tagName );
+        this.virtualNode.tagName = tagName;
+    
+        if( inner !== undefined && inner !== this.inner ) // virtualNode.$.innerHTML )
+        {
+            this.virtualNode.nextInner = inner;
+        }
+        this.virtualNode.setAttrs( attributes );
+        return this.virtualNode;
+    }
+     
+    apply( compareWith ){
+        // creates if not exists
+        // if( !dom )
+        // {
+        //     if( this.tagName )
+        //         this.dom = document.createElement(this.tagName );
+        //     else if( this.xml )
+        //         this.dom = FewNode.create( this.xml );
+        // }
+        // _de&&assert( this.dom );
+        // // changes innerHTML
+        // if( this.nextInner !== undefined && this.nextInner !== this.dom.innerHTML )
+        // {
+        //     this.dom.innerHTML = this.nextInner;
+        //     this.nextInner = undefined;
+        // }
+
+        // // changes attributes
+        // // console.log( this.attrs );
+        // // console.log( this.nextAttrs );
+        // this._applyAttributes( this.nextAttrs || {} );
+        
+        // // updates children
+        // // console.log( this.childrenSeq );
+        // let newIdMap = this.childrenSeq.reduce( (idMap, ch, index) => {
+
+        //     // TODO: looks for next dom element
+        //     let nextDom = this.dom.childNodes[ index ];
+
+        //     let childDom = ch.apply();
+        //     this.dom.appendChild( childDom );
+
+        //     return {...idMap, [ch.id]: ch };
+        // }, {} );
+
+        // delete this.childrenSeq;
+        debugger;
+    }
+
+    getNode() 
+    {
+        return this.childrenSeq[0];
+    }
+     
+    compare( compareWith ) {
+        if( !compareWith ) {
+            this.virtualNode.apply();
+            return this.virtualNode;
+        }
+        let newDom = compareWith.apply( this.virtualNode );
+
+        if( newDom !== compareWith?.dom )
+        {
+            // TODO: replace
+        }
+        return compareWith;
+    }
+    
+}
+
+// this.tagOpen( t, attribs, inner ); } 
+//             this[`${t}$`] = function( attribs, inner ){ return this.tagVoid( t, attribs, inner ); } 
+// https://stackoverflow.com/questions/32496825/proper-way-to-dynamically-add-functions-to-es6-classes
+["div", "input", "label", "span", "form", "textarea", "img", "a", 
+    "button", "select", "option", "ul", "ol", "li", 
+    "canvas"].forEach((tagName) => {
+    FewNode.prototype[tagName] = function (attribs, inner) {
+      return this.tagOpen( tagName, attribs, inner );
+    }
+    FewNode.prototype[`${tagName}$`] = function (attribs, inner) {
+      return this.tagVoid( tagName, attribs, inner );
+    }
+  });
+
+const pthis = {
+    _callDraw( _this ){
+
+        let drawNode = _this.draw( _this.fnode );
+
+        _de&&assert( drawNode );
+        _de&&assert( drawNode.virtualNode );
+        // _de&&assert( drawNode.childrenSeq[0] );
+
+        // gets the first root 
+        // let compRoot = drawNode.childrenSeq[0];
+
+        _this.virtualNode = drawNode.compare( _this.virtualNode );
+
+        return  _this.virtualNode.dom;
+    }
+}
+
+class FewComponent extends FewNode {
+    constructor(){
+        super();
+        this.fnode = FewNode.empty();
+        this._state = {};
+    }
+
+    get state() {
+        return this._state;
+    }
+    
+    __isComponent() { return true; }
 
     onInit( attrs )
     {
 
     }
 
-    onChangeAttrs( oldAttrs, newAttrs )
+    onChangeAttrs( oldAttrs, newAttrs, differences )
     {
         return true;
     }
 
-    onChangeState( oldState, newState )
+    onChangeState( oldState, newState, differences )
     {
         return true;
+    }
+    
+    _applyAttributes ( attribs )
+    {
+        let differences = SetHelper.deepDifference( this.attrs, attribs );
+        this.onChangeAttrs( this.attrs, attribs, differences );
+        this.attrs = attribs;
+    }
+
+    setState( newstate ){
+        this.nextState = {...this.nextState || {},...newstate };
+        clearTimeout( this._stateChangeTimeout );
+
+        return new Promise( ( resolve, reject ) => {
+            this._stateChangeTimeout = setTimeout( () => {
+                // if( this.stateChanged ) // if component is still to be updated...
+                this.update();            // updates.
+                resolve();                 // resolves the promise
+            }, 1 );                    // delays the updating by 1 millisecond making asynch.
+        });
+    }
+
+    update() {
+        // calculates new state
+        let newstate = { ...this._state, ...this.nextState || {} };
+        // notifies the change status
+        this.onChangeState( this._state, newstate, this.nextState );
+        // changes the component state
+        this._state = newstate;
+        this.nextState = {};
+
+        // redraws
+        pthis._callDraw( this );
+
+        // notifies all subscribers
+    }
+
+    copy( dest )
+    {
+        // return Object.getPrototypeOf(this);
+        // dest = dest || Object.create( Object.getPrototypeOf(this) );
+        dest = new this.constructor();
+
+        // dest.childrenSeq = [...this.childrenSeq.map( (e)=>( e.copy() ))];
+
+        return dest;
     }
 
     apply(){
-        console.log( this.attrs );
-
-        console.log( this.nextAttrs );
+        this._applyAttributes( this.nextAttrs || {} );
         
-        console.log( this.childrenSeq );
+        return pthis._callDraw( this );
     }
+
+    draw() {
+        return undefined;
+    }
+}
+
+function e$() { 
+    // return FewNode.empty();
+    return new FewEmptyNode();
 }
 
 if(typeof exports != "undefined"){
     exports._de = _de;
+    exports.assert = assert;
     exports.FewNode = FewNode;    
     exports.FewComponent = FewComponent;
+    exports.e$ = e$;
 }
 else{    
 }

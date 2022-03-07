@@ -29,11 +29,21 @@
             "type": "pwa-chrome",
             "request": "launch",
             "name": "Basic Component index.html",
-            "file": "c:\\Users\\maurice.defaux\\Projects\\fewdom\\static\\examples\\basicComponent\\index.html",
+            "file": "${workspaceFolder}/static/examples/basicComponent/index.html",
             "sourceMaps": true,
             "sourceMapPathOverrides": {
                 "*": "${workspaceFolder}/static/*"
             }
-        }
+        },
+        {
+            "type": "pwa-chrome",
+            "request": "launch",
+            "name": "Cards index.html",
+            "file": "${workspaceFolder}/static/examples/card/index.html",
+            "sourceMaps": true,
+            "sourceMapPathOverrides": {
+                "*": "${workspaceFolder}/static/*"
+            }
+        },
     ]
 }

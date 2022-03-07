@@ -3,7 +3,7 @@ if(typeof exports != "undefined"){
 const { FewComponent, FewNode } = require("../../src/FewDom");
 }
 
-const CardStyle =  {
+const BorderStyle =  {
     border: "solid black 1px", 
     borderRadius: "8px", 
     backgroundColor: "#EEEEFF",
@@ -12,28 +12,22 @@ const CardStyle =  {
     fontFamily: "arial"
 };
 
-class AppRoot extends FewComponent
+class Frame extends FewComponent
 {
     draw() {
+        let size = this.state.size || this.attrs.size;
         // e$() is an empty node to start with
         return e$()
             // opens the root 'div' tag and defines its attributes
             .div( { style: CardStyle } )
                 // child title div
                 .div( {
-                    id: "title", // tags can have an id among attributes
+                    id: "first", // tags can have an id among attributes
                     style: {
                         width: "100%",
                         backgroundColor: "#DEDEFF",
                         padding: "10px"
-                    },
-                    // attributes can specify event management handlers
-                    onClick: ()=>{ 
-                        // state change will cause the redraw asynchronously
-                        this.setState( { hidden: !this.state.hidden } );
-                    },
-                    // prevents text selection
-                    onSelectStart: (e) => {e.preventDefault();}
+                    }
                 })
                     // this tag$ is self-closing, like a void tag
                     .label$( {
@@ -41,7 +35,7 @@ class AppRoot extends FewComponent
                     }, this.attrs.name )    // label content
                 .$div() // closes the title div tag
                 .div( { // opens text content div tag
-                    id: "content", 
+                    id: "border", 
                     style: { 
                         padding: "30px", 
                         // this div is displayed basing on state

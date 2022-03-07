@@ -1,3 +1,6 @@
+/**Smallest http server ever
+ * 
+ */
 const http         = require('http'),
       fs           = require('fs'),
       path         = require('path'),

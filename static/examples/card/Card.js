@@ -7,12 +7,13 @@ const CardStyle =  {
     border: "solid black 1px", 
     borderRadius: "8px", 
     backgroundColor: "#EEEEFF",
-    width: "400px",
+    width: "calc( 100% - 10px )",
     overflow: "hidden",
-    fontFamily: "arial"
+    fontFamily: "arial",
+    margin: "5px"
 };
 
-class AppRoot extends FewComponent
+class Card extends FewComponent
 {
     draw() {
         // e$() is an empty node to start with
@@ -25,7 +26,8 @@ class AppRoot extends FewComponent
                     style: {
                         width: "100%",
                         backgroundColor: "#DEDEFF",
-                        padding: "10px"
+                        padding: "10px",
+                        height: "10px"
                     },
                     // attributes can specify event management handlers
                     onClick: ()=>{ 
@@ -52,9 +54,3 @@ class AppRoot extends FewComponent
             .$div();        // closes the card div
     }
 }
-
-// Initializes document root with my app root component class
-FewNode.documentRoot( AppRoot, { 
-    name: "Basic component example", 
-    description: "Few Dom Component can be used to build a structure over a state. Click on header to toggle card collapse. The line setState() will cause the component to redraw."
-} );
