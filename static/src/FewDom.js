@@ -340,7 +340,8 @@ class FewNode {
             array?.forEach( (el,index) => {
 
                 let nextAttrs = typeof e.getNode().nextAttrs === 'function' ?
-                    e.getNode().nextAttrs(el, index) : e.getNode().nextAttrs;
+                    e.getNode().nextAttrs(el, index) : 
+                    e.getNode().nextAttrs || el;
                 
                 if( ! nextAttrs?.key )
                 {
@@ -556,6 +557,20 @@ class FewEmptyNode extends FewNode
       return this.tagVoid( tagName, attribs, inner );
     }
   });
+
+function registerClass( clazz )
+{
+    _de&&assert( clazz.name );
+    let classname = clazz.name;
+
+    FewNode.prototype[classname] = function (attribs, inner) {
+        return this.child( clazz, attribs, inner );
+      }
+    FewNode.prototype[`${classname}$`] = function (attribs, inner) {
+        return this.child$( clazz, attribs, inner );
+    }
+
+}
 
 const pthis = {
     _callDraw( _this ){

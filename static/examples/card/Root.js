@@ -1,8 +1,13 @@
-
+/**This sample draws 3 columns container for cards.
+ * Card list are defined by an array of objects, each containing
+ * a title and a nested array of cards.
+ * 
+ */
 if(typeof exports != "undefined"){
 const { FewComponent, FewNode } = require("../../src/FewDom");
 }
 
+// colors of card lists
 const colors = ["#FFEFEF", "#FFFFEF", "#EFFFEF"];
 
 class AppRoot extends FewComponent
@@ -16,15 +21,18 @@ class AppRoot extends FewComponent
                 minHeight: 'calc( 100% - 20px )',
                 padding: "10px" 
             } } )
+                // repeats for each element in array list
                 .repeat( this.attrs.list )
-                    .child$( CardList, ( entry, index ) => ({
+                    // it can use CardList$ function as CardList class was registered
+                    // CardList has a function instead object in attribs parameter
+                    .CardList$( ( entry, index ) => ({
                         id: `list${index}`,
                         title: entry.title,
                         cards: entry.cards,
                         color: colors[ index ]
                     }))
                 .$repeat()
-            .$div();        // closes the card div
+            .$div();        // closes the main UI div
     }
 }
 

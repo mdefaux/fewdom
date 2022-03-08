@@ -54,3 +54,5 @@ class Card extends FewComponent
             .$div();        // closes the card div
     }
 }
+
+registerClass( Card );
