@@ -296,6 +296,10 @@ class FewNode {
             if( ChildClass.name && ChildClass.constructor )
             {
                 virtualNode = new ChildClass();
+                if( ! ChildClass instanceof FewComponent )
+                {
+                    throw new Error( `Class is not a component.` );
+                }
                 virtualNode.classname = ChildClass.name;
             }
             else if( typeof ChildClass === 'string' )
@@ -415,6 +419,9 @@ class FewNode {
             let childrenSeq = Object.entries( this.children )
                 .sort( ([,a], [,b] ) => (a.index - b.index))
                 .map( ([,child] ) => (child));
+
+            
+
             newIdMap = incomingNode.childrenSeq.reduce( (idMap, ch, index) => {
 
                 // tries a match
@@ -449,7 +456,7 @@ class FewNode {
         }
         this.children = newIdMap;
 
-        delete this.childrenSeq;
+        //delete this.childrenSeq;
 
         return this.dom;
     }
