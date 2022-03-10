@@ -4,7 +4,6 @@ const { FewComponent, FewNode } = require("../../src/FewDom");
 }
 
 const cardListStyle =  {
-    border: "solid black 1px", 
     borderRadius: "8px",
     width: "360px",
     height: "100%",
@@ -20,7 +19,7 @@ class CardList extends FewComponent
         return e$()
             // opens the root 'div' tag and defines its attributes
             .div( {
-                style: {...cardListStyle, backgroundColor: "#EEEEEF"}
+                style: {...cardListStyle, backgroundColor: "#FFFFFF"}
             } )
                 // child title div
                 .div( {
