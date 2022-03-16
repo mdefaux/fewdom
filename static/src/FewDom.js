@@ -250,6 +250,15 @@ class FewNode {
                 value( this );        // executes immediatly the render function
                 return;
             }
+
+            if( name === "ref" )
+            {
+                if( typeof value === 'function' )
+                {
+                    value( this );
+                    return;
+                }
+            }
     
             // TODO: checks if attribute didn't change
     
@@ -276,7 +285,7 @@ class FewNode {
                 return;
             }
 
-            if( name === "style" )
+            if( name === "style" && typeof value === "object")
             {
                 //   this.dom.style = value;
                 Object.entries( value ).forEach( ([styleKey,styleValue]) => {
@@ -573,12 +582,31 @@ function registerClass( clazz )
 
 }
 
+function $( selector )
+{
+    return FewNode.select( selector );
+}
+
+function $dom( xml )
+{
+    return FewNode.create( xml );
+}
+
 const pthis = {
     _callDraw( _this ){
 
         let drawNode = _this.draw( _this.fnode );
 
         _de&&assert( drawNode );
+
+        if( !drawNode.virtualNode )
+        {
+            if( drawNode.$div() )
+            {
+                throw new Error( `Missing closing $div() at ${_this.typeName}.`)
+            }
+        }
+
         _de&&assert( drawNode.virtualNode );
         // _de&&assert( drawNode.childrenSeq[0] );
 
@@ -605,6 +633,11 @@ class FewComponent extends FewNode {
     __isComponent() { return true; }
 
     onInit( attrs )
+    {
+
+    }
+
+    onCreate()
     {
 
     }
@@ -669,7 +702,11 @@ class FewComponent extends FewNode {
     apply(){
         this._applyAttributes( this.nextAttrs || {} );
         
-        return pthis._callDraw( this );
+        let rootDom = pthis._callDraw( this );
+
+        this.onCreate();
+
+        return rootDom;
     }
 
     draw() {
