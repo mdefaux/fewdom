@@ -51,7 +51,7 @@ FewNode.documentBody( { style: { background: "#E0E0F0" } } )
                     { name: "second", description: "Component can be iterable with repeat$ method" } 
                 ] 
             }, 
-            {title: "Work in progress"}, 
-            {title: "Done"}
+            {title: "Work in progress", cards: [] }, 
+            {title: "Done", cards: [] }
         ]
     } );

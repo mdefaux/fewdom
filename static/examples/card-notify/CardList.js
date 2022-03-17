@@ -16,14 +16,10 @@ class CardList extends FewComponent
 {
     onInit()
     {
-        // this.proxy = notifierProxy( this.attrs.list.cards );
-        // this.attrs.list.cards?.subscribeOnChange( () => {
-        //     this.update();
-        // });
-        
-        this.attrs.list?.subscribeOnChange( ( value ) => {
+        this.attrs.list.cards?.subscribeOnChange( ( value ) => {
             console.log( value );
             this.update();
+
         });
     }
     draw() {
@@ -64,7 +60,7 @@ class CardList extends FewComponent
                 } )
                     // for each card in attribute list
                     .repeat( this.attrs.list.cards )
-                        .Card$( (card) => ({card: card}) )
+                        .Card$( (card) => ({key: card.key, card: card}) )
                         // .Card$()
                     .$repeat()
                     .div( {
@@ -79,7 +75,8 @@ class CardList extends FewComponent
                         },
                         onClick: () => {
                             this.attrs.list.cards = 
-                                [ ...this.attrs.list.cards, { name: 'new', description: 'nuovo' } ];
+                                [ ...this.attrs.list.cards, 
+                                    { key: `${this.attrs.list.title}#${this.attrs.list.cards?.length || 0}`, name: 'new', description: 'nuovo' } ];
                         }
                     } )
                         .span$( {}, "+" )
