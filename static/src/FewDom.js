@@ -632,7 +632,7 @@ class FewComponent extends FewNode {
     
     __isComponent() { return true; }
 
-    onInit( attrs )
+    onInit()
     {
 
     }
@@ -701,6 +701,11 @@ class FewComponent extends FewNode {
 
     apply(){
         this._applyAttributes( this.nextAttrs || {} );
+
+        if( !this.virtualNode )
+        {
+            this.onInit();
+        }
         
         let rootDom = pthis._callDraw( this );
 
