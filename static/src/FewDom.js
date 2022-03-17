@@ -390,83 +390,62 @@ class FewNode {
         this._applyAttributes( {
             ...this.nextAttrs || {}, ...incomingNode?.nextAttrs  } );
         
-        let newIdMap;
-        if( !incomingNode ) 
-        {
-            // updates children
-            // console.log( this.childrenSeq );
-            newIdMap = this.childrenSeq?.reduce( (idMap, ch, index) => {
+        // removes children no longer present in incoming node
+        if( incomingNode && this.children )
+            Object.entries( this.children )
+                .filter( ([k,]) => (!incomingNode.childrenSeq.find((i) => (i.key===k))) )
+                .forEach( ([k,n]) => {
+                    this.dom.removeChild( n.dom );
+                    delete this.children[k];
+                });
+        let childrenSeq = Object.entries( this.children || {} )
+            .sort( ([,a], [,b] ) => (a.index - b.index))
+            .map( ([key,child] ) => (child));
 
-                // TODO: looks for next dom element
-                let nextDom = this.dom.childNodes[ index ];
+        let incoming = incomingNode?.childrenSeq || this.childrenSeq;
 
-                ch.index = index;
-                let childDom = ch.apply();
+        if( !incoming )
+            return this.dom;
+
+        this.children = incoming.reduce( (idMap, ch, index) => {
+
+            // tries a match
+            if( this.children?.[ ch.key ] )
+            {
+                // if position does not match
+                // if( this.children[ ch.key ].index > index )
+                if( this.children[ ch.key ].index > index )
+                {
+                    // moves here
+                    // updates index
+                    console.log( 'Move' );
+                }
+                this.children[ ch.key ].apply( ch );
+                return {...idMap, [ch.key]: this.children[ ch.key ] };
+            }
+
+            // TODO: looks for next dom element
+            let nextDom = this.dom.childNodes[ index ];
+            let nextChild = childrenSeq[ index ];
+
+            // this case should never happen
+            if( nextChild?.tagName === ch.tagName && !ch.key && !nextChild.key )
+            {
+                nextChild.apply( ch );
+                return {...idMap, [ch.key]: nextChild };
+            }
+
+            // creates a new dom tree
+            let childDom = ch.apply();
+
+            // inserts new dom if there are next
+            if( nextDom )
+                nextDom.before( childDom )
+            else 
                 this.dom.appendChild( childDom );
 
-                return {...idMap, [ch.key]: ch };
-            }, {} );
-
-        }
-        else 
-        {
-
-            // removes children no longer present in incoming node
-            if( incomingNode && this.children )
-                Object.entries( this.children )
-                    .filter( ([k,]) => (!incomingNode.childrenSeq.find((i) => (i.key===k))) )
-                    .forEach( ([k,n]) => {
-                        this.dom.removeChild( n.dom );
-                        delete this.children[k];
-                    });
-            let childrenSeq = Object.entries( this.children || {} )
-                .sort( ([,a], [,b] ) => (a.index - b.index))
-                .map( ([key,child] ) => (child));
-
-            newIdMap = incomingNode.childrenSeq?.reduce( (idMap, ch, index) => {
-
-                // tries a match
-                if( this.children[ ch.key ] )
-                {
-                    // if position does not match
-                    // if( this.children[ ch.key ].index > index )
-                    if( this.children[ ch.key ].index > index )
-                    {
-                        // moves here
-                        // updates index
-                        console.log( 'Move' );
-                    }
-                    this.children[ ch.key ].apply( ch );
-                    return {...idMap, [ch.key]: this.children[ ch.key ] };
-                }
-
-                // TODO: looks for next dom element
-                let nextDom = this.dom.childNodes[ index ];
-                let nextChild = childrenSeq[ index ];
-
-                // this case should never happen
-                if( nextChild?.tagName === ch.tagName && !ch.key && !nextChild.key )
-                {
-                    nextChild.apply( ch );
-                    return {...idMap, [ch.key]: nextChild };
-                }
-
-                // creates a new dom tree
-                let childDom = ch.apply();
-
-                // inserts new dom if there are next
-                if( nextDom )
-                    nextDom.before( childDom )
-                else 
-                    this.dom.appendChild( childDom );
-
-                return {...idMap, [ch.key]: ch };
-            }, {} );
-
-        }
-        this.children = newIdMap;
-
-        //delete this.childrenSeq;
+            return {...idMap, [ch.key]: ch };
+        }, {} );
 
         return this.dom;
     }

@@ -16,7 +16,7 @@ class CardList extends FewComponent
 {
     onInit()
     {
-        // subscribe to list.cards proxy for change
+        // subscribes to list.cards proxy for change
         // changes include the reassignment to cards array with a new array
         // for example following line will fire the callback:
         // this.attrs.list.cards = []; 
@@ -69,11 +69,9 @@ class CardList extends FewComponent
                     .div( {
                         key: 'plus',
                         style: {    
-                            border: '1px solid black',
-                            borderRadius: '8px',
+                            border: '1px solid black', borderRadius: '8px',
                             backgroundColor: 'rgb(238, 238, 255)',
-                            width: 'calc(100% - 20px)',
-                            overflow: 'hidden',
+                            width: 'calc(100% - 20px)', overflow: 'hidden',
                             margin: '5px', padding: '5px'
                         },
                         onClick: () => {
