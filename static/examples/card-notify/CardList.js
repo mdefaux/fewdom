@@ -16,12 +16,15 @@ class CardList extends FewComponent
 {
     onInit()
     {
-        this.attrs.list.cards?.subscribeOnChange( ( value ) => {
-            console.log( value );
+        // subscribe to list.cards proxy for change
+        // changes include the reassignment to cards array with a new array
+        // for example following line will fire the callback:
+        // this.attrs.list.cards = []; 
+        this.attrs.list.cards?.subscribeOnChange( () => {
             this.update();
-
         });
     }
+
     draw() {
         // e$() is an empty node to start with
         return e$()
@@ -61,8 +64,8 @@ class CardList extends FewComponent
                     // for each card in attribute list
                     .repeat( this.attrs.list.cards )
                         .Card$( (card) => ({key: card.key, card: card}) )
-                        // .Card$()
                     .$repeat()
+                    // adds the plus button to add cards to the list
                     .div( {
                         key: 'plus',
                         style: {    
@@ -74,9 +77,15 @@ class CardList extends FewComponent
                             margin: '5px', padding: '5px'
                         },
                         onClick: () => {
+                            // list.cards is a proxy but can be assignable with unmutable array
+                            // and this component, as a subscriber, will be notified
                             this.attrs.list.cards = 
                                 [ ...this.attrs.list.cards, 
-                                    { key: `${this.attrs.list.title}#${this.attrs.list.cards?.length || 0}`, name: 'new', description: 'nuovo' } ];
+                                    // adds a new card with an unique id
+                                    { id: `${this.attrs.list.title}#${this.attrs.list.cards?.length || 0}`,
+                                      name: 'new', description: 'nuovo' 
+                                    } 
+                                ];
                         }
                     } )
                         .span$( {}, "+" )
