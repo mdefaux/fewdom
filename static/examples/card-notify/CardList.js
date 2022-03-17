@@ -63,7 +63,7 @@ class CardList extends FewComponent
                 } )
                     // for each card in attribute list
                     .repeat( this.attrs.list.cards )
-                        .Card$( (card) => ({key: card.key, card: card}) )
+                        .Card$( (card) => ({id: card.id, card: card}) )
                     .$repeat()
                     // adds the plus button to add cards to the list
                     .div( {

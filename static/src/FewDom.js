@@ -213,9 +213,9 @@ class FewNode {
                     e.getNode().nextAttrs(el, index) : 
                     e.getNode().nextAttrs || el;
                 
-                if( ! nextAttrs?.key )
+                if( ! nextAttrs?.key && ! nextAttrs?.id )
                 {
-                    console.warn( `Repeated objects should have a key attributes.`)
+                    console.warn( `Repeated objects should have a key or id attribute.`)
                 }
                 this.child( e.copy().getNode(), nextAttrs );
             } );
@@ -444,14 +444,21 @@ class FewNode {
                 let nextDom = this.dom.childNodes[ index ];
                 let nextChild = childrenSeq[ index ];
 
-                if( nextChild?.tagName === ch.tagName )
+                // this case should never happen
+                if( nextChild?.tagName === ch.tagName && !ch.key && !nextChild.key )
                 {
                     nextChild.apply( ch );
                     return {...idMap, [ch.key]: nextChild };
                 }
 
+                // creates a new dom tree
                 let childDom = ch.apply();
-                this.dom.appendChild( childDom );
+
+                // inserts new dom if there are next
+                if( nextDom )
+                    nextDom.before( childDom )
+                else 
+                    this.dom.appendChild( childDom );
 
                 return {...idMap, [ch.key]: ch };
             }, {} );
