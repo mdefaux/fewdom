@@ -45,5 +45,15 @@
                 "*": "${workspaceFolder}/static/*"
             }
         },
+        {
+            "type": "pwa-chrome",
+            "request": "launch",
+            "name": "Cards notify",
+            "file": "${workspaceFolder}/static/examples/card-notify/index.html",
+            "sourceMaps": true,
+            "sourceMapPathOverrides": {
+                "*": "${workspaceFolder}/static/*"
+            }
+        },
     ]
 }

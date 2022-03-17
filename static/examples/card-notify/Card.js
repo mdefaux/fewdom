@@ -15,6 +15,14 @@ const CardStyle =  {
 
 class Card extends FewComponent
 {
+    onInit()
+    {
+        this.proxy = notifierProxy( this.attrs.card );
+        this.proxy.subscribeOnChange( () => {
+            this.update();
+        });
+    }
+
     draw() {
         // e$() is an empty node to start with
         return e$()
@@ -40,7 +48,7 @@ class Card extends FewComponent
                     // this tag$ is self-closing, like a void tag
                     .label$( {
                         style: { margin: "20%", fontWeight: "bold" }
-                    }, this.attrs.name )    // label content
+                    }, this.proxy.name )    // label content
                 .$div() // closes the title div tag
                 .div( { // opens text content div tag
                     id: "content",
@@ -49,7 +57,14 @@ class Card extends FewComponent
                         // this div is displayed basing on state
                         display: !this.state.hidden ? "block" : "none"
                 }} )
-                    .span$( {}, this.attrs.description )
+                    .span$( {
+                        // attributes can specify event management handlers
+                        onClick: ()=>{
+                            // state change will cause the redraw asynchronously
+                            this.proxy.description = "Modified text";
+                            // this.setState( { hidden: !this.state.hidden } );
+                        },
+                    }, this.proxy.description )
                 .$div()     // closes the content div
             .$div();        // closes the card div
     }

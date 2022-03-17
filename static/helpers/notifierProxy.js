@@ -1,20 +1,4 @@
 
-class ObjectPtr {
-
-    constructor( obj )
-    {
-
-    }
-
-    addProperty( key, value )
-    {
-
-    }
-
-
-
-}
-
 if (typeof Proxy == "undefined") {
     throw new Error("This browser doesn't support Proxy");
 }
@@ -25,11 +9,17 @@ function notifierProxy( obj, parent )
     let subscribedCallback = false;
     let recursiveCallback = function( )
     {
-        subscribedCallback?.( obj );
+        if( subscribedCallback )
+            subscribedCallback?.( obj );
     }
     let subscribeOnChange = function( callback ) { 
         subscribedCallback = callback 
     }
+
+    // if( obj instanceof Proxy )
+    // {
+    //     return obj;
+    // }
 
     let proxy = new Proxy( obj, {
         get(target, name, receiver) {
@@ -39,7 +29,20 @@ function notifierProxy( obj, parent )
                 console.log("Getting non-existent property '" + name + "'");
                 return undefined;
             }
-            return Reflect.get(target, name, receiver);
+            if( typeof obj === 'array' )
+            {
+                console.log( 'array' );
+            }
+            if( subs[ name ] )
+            {
+                return subs[ name ];
+            }
+            let value = Reflect.get(target, name, receiver);
+            if( typeof value === 'object' )
+            {
+                return subs[ name ] = notifierProxy( value, this );
+            }
+            return value;
         },
         set(target, name, value, receiver) {
             if (!Reflect.has(target, name)) {
@@ -47,7 +50,7 @@ function notifierProxy( obj, parent )
                 if( typeof value === 'object' )
                 {
                     subs[ name ] = notifierProxy( value, this );
-                    return;
+                    // return;
                 }
             }
             let result = Reflect.set(target, name, value, receiver);
