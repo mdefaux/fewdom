@@ -1,6 +1,6 @@
 
 if(typeof exports != "undefined"){
-const { FewComponent, FewNode } = require("../../src/FewDom");
+const { FewComponent, FewNode, e$ } = require("../../src/FewDom");
 }
 
 const cardListStyle =  {
@@ -11,6 +11,27 @@ const cardListStyle =  {
     fontFamily: "arial",
     margin: "5px"
 };
+
+const title = function( attrs )
+{
+    return e$().div( {
+        key: "title", // tags can have an id among attributes
+        style: {
+            width: "100%",
+            backgroundColor: attrs.color || "#DEDEFF",
+            padding: "10px"
+        },
+        // attributes can specify event management handlers
+        onClick: attrs.onClick,
+        // prevents text selection
+        onSelectStart: (e) => {e.preventDefault();}
+    } )
+        // this tag$ is self-closing, like a void tag
+        .label$( {
+            style: { margin: "10%", fontWeight: "bold" }
+        }, attrs.text )    // label content
+    .$div()         // closes the title div tag
+}
 
 class CardList extends FewComponent
 {
@@ -32,27 +53,7 @@ class CardList extends FewComponent
             .div( {
                 style: {...cardListStyle, backgroundColor: "#FFFFFF"}
             } )
-                // child title div
-                .div( {
-                    key: "title", // tags can have an id among attributes
-                    style: {
-                        width: "100%",
-                        backgroundColor: this.attrs.color || "#DEDEFF",
-                        padding: "10px"
-                    },
-                    // attributes can specify event management handlers
-                    onClick: ()=>{
-                        // state change will cause the redraw asynchronously
-                        this.setState( { hidden: !this.state.hidden } );
-                    },
-                    // prevents text selection
-                    onSelectStart: (e) => {e.preventDefault();}
-                } )
-                    // this tag$ is self-closing, like a void tag
-                    .label$( {
-                        style: { margin: "10%", fontWeight: "bold" }
-                    }, this.attrs.list.title )    // label content
-                .$div()         // closes the title div tag
+                .title$( { text: this.attrs.list.title, color: this.attrs.color } )
                 .div( {         // opens cards container div
                     key: "content",
                     style: { 
@@ -94,3 +95,4 @@ class CardList extends FewComponent
 }
 
 registerClass( CardList );
+registerFunction( title );

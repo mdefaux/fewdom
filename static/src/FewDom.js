@@ -338,6 +338,11 @@ class FewNode {
                 }
                 virtualNode.typeName = ChildClass.name;
             }
+            else if( ChildClass instanceof FewEmptyNode )
+            {
+                virtualNode = ChildClass.virtualNode;
+                attrs = virtualNode.nextAttrs;
+            }
             else if( typeof ChildClass === 'string' )
             {
                 virtualNode = new FewNode();
@@ -479,45 +484,6 @@ class FewEmptyNode extends FewNode
         this.virtualNode.setAttrs( attributes );
         return this.virtualNode;
     }
-     
-    // apply( compareWith ){
-        // creates if not exists
-        // if( !dom )
-        // {
-        //     if( this.tagName )
-        //         this.dom = document.createElement(this.tagName );
-        //     else if( this.xml )
-        //         this.dom = FewNode.create( this.xml );
-        // }
-        // _de&&assert( this.dom );
-        // // changes innerHTML
-        // if( this.nextInner !== undefined && this.nextInner !== this.dom.innerHTML )
-        // {
-        //     this.dom.innerHTML = this.nextInner;
-        //     this.nextInner = undefined;
-        // }
-
-        // // changes attributes
-        // // console.log( this.attrs );
-        // // console.log( this.nextAttrs );
-        // this._applyAttributes( this.nextAttrs || {} );
-        
-        // // updates children
-        // // console.log( this.childrenSeq );
-        // let newIdMap = this.childrenSeq.reduce( (idMap, ch, index) => {
-
-        //     // TODO: looks for next dom element
-        //     let nextDom = this.dom.childNodes[ index ];
-
-        //     let childDom = ch.apply();
-        //     this.dom.appendChild( childDom );
-
-        //     return {...idMap, [ch.id]: ch };
-        // }, {} );
-
-        // delete this.childrenSeq;
-        // debugger;
-    // }
 
     getNode() 
     {
@@ -564,6 +530,21 @@ function registerClass( clazz )
       }
     FewNode.prototype[`${classname}$`] = function (attribs, inner) {
         return this.child$( clazz, attribs, inner );
+    }
+
+}
+
+function registerFunction( f )
+{
+    _de&&assert( f.name );
+    let classname = f.name;
+
+    FewNode.prototype[classname] = function (attribs, inner) {
+
+        return this.child( f( attribs, inner ), attribs, inner );
+      }
+    FewNode.prototype[`${classname}$`] = function (attribs, inner) {
+        return this.child$( f( attribs, inner ), attribs, inner );
     }
 
 }

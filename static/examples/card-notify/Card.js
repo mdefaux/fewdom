@@ -29,28 +29,9 @@ class Card extends FewComponent
             // opens the root 'div' tag and defines its attributes
             .div( { style: CardStyle } )
                 // child title div
+                .title$( {text:this.proxy.name } )
+                // opens text content div tag
                 .div( {
-                    id: "title", // tags can have an id among attributes
-                    style: {
-                        width: "100%",
-                        backgroundColor: "#DEDEFF",
-                        padding: "10px",
-                        height: "10px"
-                    },
-                    // attributes can specify event management handlers
-                    onClick: ()=>{
-                        // state change will cause the redraw asynchronously
-                        this.setState( { hidden: !this.state.hidden } );
-                    },
-                    // prevents text selection
-                    onSelectStart: (e) => {e.preventDefault();}
-                })
-                    // this tag$ is self-closing, like a void tag
-                    .label$( {
-                        style: { margin: "20%", fontWeight: "bold" }
-                    }, this.proxy.name )    // label content
-                .$div() // closes the title div tag
-                .div( { // opens text content div tag
                     id: "content",
                     style: { 
                         padding: "30px", 
