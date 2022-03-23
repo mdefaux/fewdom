@@ -570,7 +570,7 @@ const pthis = {
         {
             if( drawNode.$div() )
             {
-                throw new Error( `Missing closing $div() at ${_this.typeName}.`)
+                throw new Error( `Missing closing $div() at ${_this.typeName}.` );
             }
         }
 
@@ -666,8 +666,8 @@ class FewComponent extends FewNode {
         return dest;
     }
 
-    apply(){
-        this._applyAttributes( this.nextAttrs || {} );
+    apply( newDef ){
+        this._applyAttributes( newDef?.nextAttrs || this.nextAttrs || {} );
 
         if( !this.virtualNode )
         {
