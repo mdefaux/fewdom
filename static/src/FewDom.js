@@ -100,7 +100,9 @@ class FewNode {
      * @returns FewNode wrapper pointing to selected element
      */
     static select( querySelector ){
-        var n = document.querySelector(querySelector);
+        var n = typeof querySelector === 'string' ?
+            document.querySelector(querySelector) : querySelector;
+        
         _de&&assert( n );
         var wrapped = new FewNode()
         wrapped.setup( n );
@@ -129,12 +131,26 @@ class FewNode {
         }
     }
 
-    static documentBody( attrs )
+    static documentBody( attrs, callback )
     {
         let root = e$();
-        window.onload = ()=>{
+        window.onload = async ()=>{
+            if( callback && typeof callback === 'function' )
+                await callback();
             root.setup( document.body );
             root.setAttrs( attrs );
+            root.apply();
+        }
+        return root;
+    }
+
+    static onLoad( callback )
+    {
+        let root = e$();
+        window.onload = async ()=>{
+            root.setup( document.body );
+            if( callback && typeof callback === 'function' )
+                await callback( root );
             root.apply();
         }
         return root;
@@ -484,6 +500,45 @@ class FewEmptyNode extends FewNode
         this.virtualNode.setAttrs( attributes );
         return this.virtualNode;
     }
+     
+    // apply( compareWith ){
+        // creates if not exists
+        // if( !dom )
+        // {
+        //     if( this.tagName )
+        //         this.dom = document.createElement(this.tagName );
+        //     else if( this.xml )
+        //         this.dom = FewNode.create( this.xml );
+        // }
+        // _de&&assert( this.dom );
+        // // changes innerHTML
+        // if( this.nextInner !== undefined && this.nextInner !== this.dom.innerHTML )
+        // {
+        //     this.dom.innerHTML = this.nextInner;
+        //     this.nextInner = undefined;
+        // }
+
+        // // changes attributes
+        // // console.log( this.attrs );
+        // // console.log( this.nextAttrs );
+        // this._applyAttributes( this.nextAttrs || {} );
+        
+        // // updates children
+        // // console.log( this.childrenSeq );
+        // let newIdMap = this.childrenSeq.reduce( (idMap, ch, index) => {
+
+        //     // TODO: looks for next dom element
+        //     let nextDom = this.dom.childNodes[ index ];
+
+        //     let childDom = ch.apply();
+        //     this.dom.appendChild( childDom );
+
+        //     return {...idMap, [ch.id]: ch };
+        // }, {} );
+
+        // delete this.childrenSeq;
+        // debugger;
+    // }
 
     getNode() 
     {
