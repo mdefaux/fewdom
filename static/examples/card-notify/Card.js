@@ -24,6 +24,7 @@ class Card extends FewComponent
     }
 
     draw() {
+        let checks = [ "uno", "due", "tre" ];
         // e$() is an empty node to start with
         return e$()
             // opens the root 'div' tag and defines its attributes
@@ -46,6 +47,18 @@ class Card extends FewComponent
                             // this.setState( { hidden: !this.state.hidden } );
                         },
                     }, this.proxy.description )
+                    // .repeat( checks )
+                    //     .div( { style: {display: "table"} } )
+                    //         .label$( (c) => ( { inner: c } ) )
+                    //     .$div()
+                    // .$repeat()
+                    
+                    .repeat$( checks.map( (c) => (
+                        e$().div( { style: {display: "table"} } )
+                            .input$( { type: 'checkbox' } )
+                            .label$( { inner: c } )
+                        .$div()
+                    )) )
                 .$div()     // closes the content div
             .$div();        // closes the card div
     }

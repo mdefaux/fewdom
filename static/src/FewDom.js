@@ -205,35 +205,64 @@ class FewNode {
     }
     
 
-    repeat$( array )
+    repeat$( arrayOrFunction )
     {
-        let e = e$();
-
-        e.parent = this;
-        e.deferredCallback = (nodeCallback)=>{
-            array.forEach( (el,index) => nodeCallback(el, index) )
+        let nodes;
+        if( typeof arrayOrFunction === 'function' )
+        {
+            nodes = arrayOrFunction();
         }
-        return e;
+        else if( Array.isArray(arrayOrFunction) )
+        {
+            nodes = arrayOrFunction;
+        }
+
+        if( Array.isArray( nodes ) )
+        {
+            nodes.forEach( (el) => {
+                this.child( el, el.nextAttrs );
+            } )
+        }
+        // let e = e$();
+
+        // e.parent = this;
+        // e.deferredCallback = (nodeCallback)=>{
+        //     arrayOrFunction.forEach( (el,index) => nodeCallback(el, index) )
+        // }
+        return this;
     }
 
-    repeat( array )
+    repeat( arrayOrFunction )
     {
         let e = e$();
-
         e.parent = this;
+
+        if( typeof arrayOrFunction === 'function' )
+        {
+            let node = arrayOrFunction();
+            if( Array.isArray( nodes ) )
+            {
+                node.forEach( (el, index) => {
+                    this.child( e, e.nextAttrs );
+                } )
+            }
+            e.$repeat = () => (this);
+            return e;
+        }
+
         e.$repeat = () => {
 
-            array?.forEach( (el,index) => {
+            arrayOrFunction?.forEach( (el,index) => {
 
-                let nextAttrs = typeof e.getNode().nextAttrs === 'function' ?
-                    e.getNode().nextAttrs(el, index) : 
-                    e.getNode().nextAttrs || el;
+                // let nextAttrs = typeof e.getNode().nextAttrs === 'function' ?
+                //     e.getNode().nextAttrs(el, index) : 
+                //     e.getNode().nextAttrs || el;
                 
-                if( ! nextAttrs?.key && ! nextAttrs?.id )
-                {
-                    console.warn( `Repeated objects should have a key or id attribute.`)
-                }
-                this.child( e.copy().getNode(), nextAttrs );
+                // if( ! nextAttrs?.key && ! nextAttrs?.id )
+                // {
+                //     console.warn( `Repeated objects should have a key or id attribute.`)
+                // }
+                this.child( e.copy().getNode(), /*nextAttrs*/e.getNode().nextAttrs, false /* inner? */, el /* adds argument */, index );
             } );
 
             return this;
@@ -243,10 +272,12 @@ class FewNode {
 
     copy( dest )
     {
-        dest = dest || e$();
+        dest = dest || new FewNode();
 
         dest.tagName = this.tagName;
-        dest.childrenSeq = [...this.childrenSeq.map( (e)=>( e.copy() ))];
+        dest.nextAttrs = this.nextAttrs;
+        if( this.childrenSeq )
+            dest.childrenSeq = [...this.childrenSeq.map( (e)=>( e.copy() ))];
 
         return dest;
     }
@@ -309,14 +340,23 @@ class FewNode {
                 });
                 return;
             }
-    
+
+            if( name === "inner" )
+            {
+                if(/* value !== undefined &&*/ value !== this.dom.innerHTML )
+                {
+                    this.dom.innerHTML = value;
+                }
+                return;
+            }
+
             this.dom.setAttribute(name, value);
         });
 
         this.attrs = attribs;
     }
 
-    child( ChildClass, attrs ){
+    child( ChildClass, attrs, inner, argvalue, argIndex ){
         _de&&assert( ChildClass );
         if( !this.childrenSeq )
             this.childrenSeq = [];
@@ -356,7 +396,7 @@ class FewNode {
             }
             else if( ChildClass instanceof FewEmptyNode )
             {
-                virtualNode = ChildClass.virtualNode;
+                virtualNode = ChildClass.getNode();
                 attrs = virtualNode.nextAttrs;
             }
             else if( typeof ChildClass === 'string' )
@@ -376,6 +416,14 @@ class FewNode {
         }
         virtualNode.setAttrs( attrs );
         virtualNode.key = key;
+
+        argvalue = argvalue || this.argvalue;
+        argIndex = argIndex || this.argIndex;
+        if( argvalue || argIndex )
+        {
+            virtualNode.argvalue = argvalue;
+            virtualNode.argIndex = argIndex;            
+        }
 
         this.childrenSeq.push( virtualNode );
 
@@ -407,9 +455,18 @@ class FewNode {
             this.nextInner = undefined;
         }
 
+        let nextAttrs = incomingNode?.nextAttrs || this.nextAttrs;
+        // argvalue = argvalue || this.argvalue;
+        // argIndex = argIndex || this.argIndex;
+        if( typeof nextAttrs === 'function' )
+        {
+            nextAttrs = nextAttrs( this.argvalue, this.argIndex );
+        }
+
         // changes attributes
-        this._applyAttributes( {
-            ...this.nextAttrs || {}, ...incomingNode?.nextAttrs  } );
+        this._applyAttributes( nextAttrs );
+            // {
+            // ...this.nextAttrs || {}, ...incomingNode?.nextAttrs } );
         
         // removes children no longer present in incoming node
         if( incomingNode && this.children )
@@ -474,9 +531,9 @@ class FewNode {
 
 class FewEmptyNode extends FewNode
 {
-    constructor(){
-        super();
-    }
+    // constructor(){
+    //     super();
+    // }
     
     /**Creates or modify a tag element children of this node element.
      * 
@@ -485,21 +542,21 @@ class FewEmptyNode extends FewNode
      * @param {*} inner 
      * @returns a 
      */
-     tag( tagName, attributes, inner )
-     {
-        let id = ( attributes && attributes.id );
+    //  tag( tagName, attributes, inner )
+    //  {
+    //     let id = ( attributes && attributes.id );
 
-        this.virtualNode = new FewNode();
-        this.virtualNode.setup( false, id, tagName );
-        this.virtualNode.tagName = tagName;
+    //     this.virtualNode = new FewNode();
+    //     this.virtualNode.setup( false, id, tagName );
+    //     this.virtualNode.tagName = tagName;
     
-        if( inner !== undefined && inner !== this.inner ) // virtualNode.$.innerHTML )
-        {
-            this.virtualNode.nextInner = inner;
-        }
-        this.virtualNode.setAttrs( attributes );
-        return this.virtualNode;
-    }
+    //     if( inner !== undefined && inner !== this.inner ) // virtualNode.$.innerHTML )
+    //     {
+    //         this.virtualNode.nextInner = inner;
+    //     }
+    //     this.virtualNode.setAttrs( attributes );
+    //     return this.virtualNode;
+    // }
      
     // apply( compareWith ){
         // creates if not exists
@@ -543,6 +600,16 @@ class FewEmptyNode extends FewNode
     getNode() 
     {
         return this.childrenSeq[0];
+    }
+
+    copy( dest )
+    {
+        dest = new FewEmptyNode();
+        // dest.typeName = this.typeName;
+
+        super.copy( dest )
+
+        return dest;
     }
      
     compare( compareWith ) {
@@ -621,7 +688,7 @@ const pthis = {
 
         _de&&assert( drawNode );
 
-        if( !drawNode.virtualNode )
+        if( !drawNode.getNode?.() )
         {
             if( drawNode.$div() )
             {
@@ -629,13 +696,25 @@ const pthis = {
             }
         }
 
-        _de&&assert( drawNode.virtualNode );
+        _de&&assert( drawNode.getNode?.() );
         // _de&&assert( drawNode.childrenSeq[0] );
 
         // gets the first root 
         // let compRoot = drawNode.childrenSeq[0];
+        
+        if( !_this.virtualNode ) {
+            _this.virtualNode = drawNode.getNode();
+            _this.virtualNode.apply();
+            // return this.virtualNode;
+        }
+        else 
+        {
+            
+            _this.virtualNode.apply( drawNode.getNode() );
+        }
+        // let newDom = compareWith.apply( this.virtualNode );
 
-        _this.virtualNode = drawNode.compare( _this.virtualNode );
+        // _this.virtualNode = drawNode.compare( _this.virtualNode );
 
         return  _this.virtualNode.dom;
     }
@@ -711,18 +790,25 @@ class FewComponent extends FewNode {
 
     copy( dest )
     {
-        // return Object.getPrototypeOf(this);
-        // dest = dest || Object.create( Object.getPrototypeOf(this) );
         dest = new this.constructor();
         dest.typeName = this.typeName;
 
-        // dest.childrenSeq = [...this.childrenSeq.map( (e)=>( e.copy() ))];
+        super.copy( dest )
 
         return dest;
     }
 
     apply( newDef ){
-        this._applyAttributes( newDef?.nextAttrs || this.nextAttrs || {} );
+        let nextAttrs = newDef?.nextAttrs || this.nextAttrs || {};
+        if( typeof nextAttrs === 'function' )
+        {
+            nextAttrs = nextAttrs( this.argvalue, this.argIndex );
+        }
+
+        // changes attributes
+        this._applyAttributes( nextAttrs );
+
+        // this._applyAttributes( newDef?.nextAttrs || this.nextAttrs || {} );
 
         if( !this.virtualNode )
         {
