@@ -55,5 +55,15 @@
                 "*": "${workspaceFolder}/static/*"
             }
         },
+        {
+            "type": "pwa-chrome",
+            "request": "launch",
+            "name": "Timeline",
+            "file": "${workspaceFolder}/static/examples/timeline/index.html",
+            "sourceMaps": true,
+            "sourceMapPathOverrides": {
+                "*": "${workspaceFolder}/static/*"
+            }
+        },
     ]
 }

@@ -464,7 +464,7 @@ class FewNode {
         }
 
         // changes attributes
-        this._applyAttributes( nextAttrs );
+        this._applyAttributes( nextAttrs || {} );
             // {
             // ...this.nextAttrs || {}, ...incomingNode?.nextAttrs } );
         
@@ -666,7 +666,18 @@ function registerFunction( f )
         return this.child( f( attribs, inner ), attribs, inner );
       }
     FewNode.prototype[`${classname}$`] = function (attribs, inner) {
-        return this.child$( f( attribs, inner ), attribs, inner );
+        let ref = {
+            component: undefined
+        }
+
+        ref.update= ( newAttrs ) => {
+            ref.component?.apply( f(newAttrs || attribs, inner, ref ).getNode() );
+        }
+
+        ref.component = this.child( f( attribs, inner, ref ), attribs, inner );
+
+
+        return this;
     }
 
 }
