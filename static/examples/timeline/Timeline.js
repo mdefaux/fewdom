@@ -8,6 +8,11 @@ if(typeof exports != "undefined"){
 class Timeline extends FewComponent
 {
 
+    onCreate() {
+        this.setState({ 
+            cellWidth: 32, rowHeight: 48 
+        });
+    }
 
     async load()
     {
@@ -71,12 +76,12 @@ class Timeline extends FewComponent
                             border: "1px solid oldlace"
                         }
                     } )
-                        .div( { style: {display: "table-row", height: 32, maxHeight: 32} } )
+                        .div( { style: {display: "table-row", height: this.state.rowHeight, maxHeight: this.state.rowHeight} } )
                             .label$( {display: "inline-flex", inner: "name" } )
                         .$div()
                         .repeat$( rows.map( ( row ) => (e$()
                             .div( { style: {
-                                display: "table-row", height: 32, maxHeight: 32} } )
+                                display: "table-row", height: this.state.rowHeight, maxHeight: this.state.rowHeight} } )
                                 .label$( { 
                                     // type: "text",
                                     display: "inline-flex",
@@ -95,19 +100,21 @@ class Timeline extends FewComponent
                             overflowX: 'scroll'
                         }
                     } )
-                        .div( { style: {display: "inline", height: 32} } )
+                        .div( { style: {display: "inline", height: this.state.rowHeight} } )
                             .label$( { inner: "timeline" } )
                         .$div()
                         .repeat$( rows.map( ( row, rowIndex ) => (e$()
                             .div( { 
-                                style: {display: "table-row", position: "relative", height: 32, minWidth: '200%'} 
+                                style: {display: "table-row", position: "relative", height: this.state.rowHeight, minWidth: '200%'} 
                             } )
                                 .repeat$( Array(200).fill(false).map( (e, i) => ( e$()
                                     .div$( { style: 
-                                        {display: "table-cell", minWidth: 30, maxWidth: 30, border: '1px solid', inner: '&nbsp;'}  } )
+                                        {display: "table-cell", minWidth: this.state.cellWidth-2, maxWidth: this.state.cellWidth-2, border: '1px solid', inner: '&nbsp;'}  } )
                                 )) )
                                 
                                 .TimelineBar$( {
+                                    cellWidth: this.state.cellWidth,
+                                    rowHeight: this.state.rowHeight,
                                     label: row.label,
                                     rowIndex: rowIndex,
                                     start: row.startAt || 0,

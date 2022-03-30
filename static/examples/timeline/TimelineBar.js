@@ -12,9 +12,9 @@ const TimelineBar = function ( attrs, inner, state )
             border: '1px solid black',
             borderRadius: '6px',
             overflow: "auto",
-            height: 32,
-            left: 32 * ( state.draggedStart !== undefined ? state.draggedStart : attrs.start ), 
-            minWidth: 32 * ( state.draggedSize !== undefined ? state.draggedSize : attrs.duration )
+            height: attrs.rowHeight,
+            left: attrs.cellWidth * ( state.draggedStart !== undefined ? state.draggedStart : attrs.start ), 
+            minWidth: attrs.cellWidth * ( state.draggedSize !== undefined ? state.draggedSize : attrs.duration )
         } 
     } )
         .div( {
@@ -28,13 +28,13 @@ const TimelineBar = function ( attrs, inner, state )
                     top: 0,
                     left: 0,
                     width: 10, 
-                    height: 32,
+                    height: attrs.rowHeight,
                     background: "rgb(28 255 69)",
                     inner: "&nbsp;"
                 },
                 ...Draggable.setup( {
                     onMove: (e, state) => {
-                        let delta = parseInt( e.deltaX / 32 );
+                        let delta = parseInt( e.deltaX / attrs.cellWidth );
                         state.draggedStart = attrs.start + delta;
                         
                         if( state.draggedStart < 0 )
@@ -55,13 +55,13 @@ const TimelineBar = function ( attrs, inner, state )
                     top: 0,
                     right: 0,
                     width: 10, 
-                    height: 32,
+                    height: attrs.rowHeight,
                     background: "rgb(28 255 69)",
                     inner: "&nbsp;"
                 },
                 ...Draggable.setup( {
                     onMove: (e, state) => {
-                        let delta = parseInt( e.deltaX / 32 );
+                        let delta = parseInt( e.deltaX / attrs.cellWidth );
                         state.draggedSize = attrs.duration + delta;
                         
                         if( state.draggedSize < 1 )
