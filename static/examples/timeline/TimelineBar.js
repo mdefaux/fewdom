@@ -13,8 +13,8 @@ const TimelineBar = function ( attrs, inner, state )
             borderRadius: '6px',
             overflow: "auto",
             height: 32,
-            left: 32 * ( state.draggedStart || attrs.start ), 
-            minWidth: 32 * ( state.draggedSize || attrs.duration )
+            left: 32 * ( state.draggedStart !== undefined ? state.draggedStart : attrs.start ), 
+            minWidth: 32 * ( state.draggedSize !== undefined ? state.draggedSize : attrs.duration )
         } 
     } )
         .div( {

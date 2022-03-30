@@ -8,20 +8,20 @@ if(typeof exports != "undefined"){
 class Timeline extends FewComponent
 {
 
-    onCreate() {
-        console.log( "SCore created" );
-     }
 
     async load()
     {
         let rows = notifierProxy( [
-            { label: "Work One", startAt: 10, duration: 20 },
+            { label: "Work One", startAt: 0, duration: 4 },
             { label: "Work Two", startAt: 20, duration: 30 },
             { label: "Work Three", startAt: 0, duration: 20 },
             { label: "Work Four", startAt: 10, duration: 10 },
             { label: "Work Five", startAt: 30, duration: 5 },
         ] );
 
+        rows.subscribeOnChange( (v) => {
+            console.log( rows );
+        })
         
         this.setState({ rows: rows });
     }
@@ -104,11 +104,10 @@ class Timeline extends FewComponent
                             } )
                                 .repeat$( Array(200).fill(false).map( (e, i) => ( e$()
                                     .div$( { style: 
-                                        {display: "table-cell", minWidth: 32, maxWidth: 32, border: '1px solid', inner: '&nbsp;'}  } )
+                                        {display: "table-cell", minWidth: 30, maxWidth: 30, border: '1px solid', inner: '&nbsp;'}  } )
                                 )) )
                                 
                                 .TimelineBar$( {
-                                    // row: row,
                                     label: row.label,
                                     rowIndex: rowIndex,
                                     start: row.startAt || 0,
