@@ -3,7 +3,7 @@ if(typeof exports != "undefined"){
     const { FewComponent, FewNode, e$ } = require("../../fewdom/FewDom");
 }
 
-fewd.types.TimelineBar = function ( attrs, inner, state )
+fewd.types.TimelineBar = function ( attrs, state )
 {
     return e$().div( {
         style: {

@@ -109,7 +109,8 @@ class Timeline extends FewComponent
                     .$div()
                     .div( {
                         style: {
-                            width: "100%",
+                            // width: "100%",
+                            maxWidth: "calc( 100vw - 220px )",
                             // height: "calc( 20% - 5px )",
                             display: "table-cell",
                             background: "ligthgray",

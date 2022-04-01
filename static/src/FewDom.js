@@ -616,13 +616,9 @@ class FewEmptyNode extends FewNode
         return this.childrenSeq[0];
     }
 
-    callF( f, attrs, parent )
+    callF( f, attrs, state )
     {
-        let defer = f( attrs, false, parent );
-
-        defer.childrenSeq.forEach( (c) => {
-            c.key= `${this.key}.${c.key}` 
-        });
+        let defer = f( attrs, state );
 
         return defer.childrenSeq;
     }
@@ -642,6 +638,11 @@ class FewEmptyNode extends FewNode
                 this.childrenSeq[0].apply( incoming[0] );
             }
         }
+        
+        // 
+        this.childrenSeq.forEach( (c) => {
+            c.key= `${this.key}.${c.key}` 
+        });
         return this.childrenSeq;
     }
 
