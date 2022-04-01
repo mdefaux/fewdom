@@ -12,7 +12,7 @@ const cardListStyle = {
     margin: "5px"
 };
 
-fwdtypes.title = function( attrs )
+fewd.types.title = function( attrs )
 {
     return e$().div( {
         key: "title", // tags can have an id among attributes
@@ -94,4 +94,4 @@ class CardList extends FewComponent
     }
 }
 
-fwdtypes.CardList = CardList;
+fewd.types.CardList = CardList;

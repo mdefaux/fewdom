@@ -3,7 +3,7 @@ if(typeof exports != "undefined"){
     const { FewComponent, FewNode, e$ } = require("../../fewdom/FewDom");
 }
 
-fwdtypes.TimelineSlots = function( attrs )
+fewd.types.TimelineSlots = function( attrs )
 {
     return e$()
         .repeat$( Array(attrs.count).fill(false).map( () => ( e$()
@@ -150,4 +150,4 @@ class Timeline extends FewComponent
 }
 
 // registerClass( Timeline );
-fwdtypes.Timeline = Timeline;
+fewd.types.Timeline = Timeline;
