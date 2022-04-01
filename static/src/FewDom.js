@@ -360,26 +360,27 @@ class FewNode {
         _de&&assert( ChildClass );
         if( !this.childrenSeq )
             this.childrenSeq = [];
+
+        // setups child identifiers
         let id = attrs?.id;
-
+        let typeName = ChildClass.name || ChildClass.typeName || ChildClass.tagName || typeof ChildClass;
         let key = attrs?.key || id;
-        let name = ChildClass.name || ChildClass.typeName || ChildClass.tagName || "unknown";
 
+        // since key is mandatory unique, if not defined by attrs or id 
+        // defines by counting children with same type
         if( !key ) {
             let count = this.childrenSeq.reduce( 
-                (cnt, prev) => ((prev.typeName||prev.tagName) === name? cnt+1 : cnt ),
+                (cnt, prev) => ((prev.typeName||prev.tagName) === typeName? cnt+1 : cnt ),
                 0 );
-            key = `${name}#${count}`;
+            key = `${typeName}#${count}`;
         }
         else {
             if( this.childrenSeq.find( (prev)=> prev.key === key ) )
                 throw new Error( `Duplicate key '${key}' at '${this.key}'. ` );
         }
-        // if( !id )
-        //     id = `n${this.childrenSeq.length}`; // sets an id determined by index
 
-        // finds the node in children map by id
-        let virtualNode = this.children?.[ id ];
+        // finds the node in children map by key
+        let virtualNode = false && this.children?.[ id ];
 
         if( !virtualNode )
         {
@@ -404,7 +405,7 @@ class FewNode {
                 virtualNode = new FewNode();
                 virtualNode.setup( false, id, ChildClass );
             }
-            else 
+            else
             {
                 virtualNode = ChildClass;
             }
@@ -642,45 +643,97 @@ class FewEmptyNode extends FewNode
     }
   });
 
-function registerClass( clazz )
-{
-    _de&&assert( clazz.name );
-    let classname = clazz.name;
+// function registerClass( clazz )
+// {
+//     _de&&assert( clazz.name );
+//     let classname = clazz.name;
 
-    FewNode.prototype[classname] = function (attribs, inner) {
-        return this.child( clazz, attribs, inner );
-      }
-    FewNode.prototype[`${classname}$`] = function (attribs, inner) {
-        return this.child$( clazz, attribs, inner );
-    }
+//     FewNode.prototype[classname] = function (attribs, inner) {
+//         return this.child( clazz, attribs, inner );
+//     }
+//     FewNode.prototype[`${classname}$`] = function (attribs, inner) {
+//         return this.child$( clazz, attribs, inner );
+//     }
 
-}
+// }
 
-function registerFunction( f )
-{
-    _de&&assert( f.name );
-    let classname = f.name;
+// function registerFunction( f )
+// {
+//     _de&&assert( f.name );
+//     let classname = f.name;
 
-    FewNode.prototype[classname] = function (attribs, inner) {
+//     FewNode.prototype[classname] = function (attribs, inner) {
 
-        return this.child( f( attribs, inner ), attribs, inner );
-      }
-    FewNode.prototype[`${classname}$`] = function (attribs, inner) {
-        let ref = {
-            component: undefined
+//         return this.child( f( attribs, inner ), attribs, inner );
+//       }
+//     FewNode.prototype[`${classname}$`] = function (attribs, inner) {
+//         let ref = {
+//             component: undefined
+//         }
+
+//         ref.update= ( newAttrs ) => {
+//             ref.component?.apply( f(newAttrs || attribs, inner, ref ).getNode() );
+//         }
+
+//         ref.component = this.child( f( attribs, inner, ref ), attribs, inner );
+
+
+//         return this;
+//     }
+
+// }
+
+const fwdtypes = new Proxy( {}, {
+    set(target, name, value, receiver) {
+        if (Reflect.has(target, name)) 
+        {
+            throw new Error( `Type '${name}' already defined.` );
         }
-
-        ref.update= ( newAttrs ) => {
-            ref.component?.apply( f(newAttrs || attribs, inner, ref ).getNode() );
+        if( Array.isArray( value ) )
+        {
+            throw new Error( `Type '${name}' cannot be an array. Should be a function or a sub-class of Component.` );
         }
+        else if( typeof value === 'function' && value.constructor && value.name )
+        {
+            let clazz = value;
+            let classname = clazz.name;
+        
+            FewNode.prototype[classname] = function (attribs, inner) {
+                return this.child( clazz, attribs, inner );
+            }
+            FewNode.prototype[`${classname}$`] = function (attribs, inner) {
+                return this.child$( clazz, attribs, inner );
+            }
+        }
+        else if( typeof value === 'function' )
+        {
+            let f = value;
+            
+            FewNode.prototype[name] = function (attribs, inner) {
 
-        ref.component = this.child( f( attribs, inner, ref ), attribs, inner );
+                return this.child( f( attribs, inner ), attribs, inner );
+            }
+            FewNode.prototype[`${name}$`] = function (attribs, inner) {
+                let ref = {
+                    component: undefined
+                }
 
+                ref.update= ( newAttrs ) => {
+                    ref.component?.apply( f(newAttrs || attribs, inner, ref ).getNode() );
+                }
 
-        return this;
+                ref.component = this.child( f( attribs, inner, ref ), attribs, inner );
+
+                return this;
+            }
+
+        }
+        else if( typeof value === 'object' )
+        {
+        }
+        return Reflect.set(target, name, value, receiver);
     }
-
-}
+});
 
 function $( selector )
 {

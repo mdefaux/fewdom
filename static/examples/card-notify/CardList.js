@@ -3,7 +3,7 @@ if(typeof exports != "undefined"){
 const { FewComponent, FewNode, e$ } = require("../../src/FewDom");
 }
 
-const cardListStyle =  {
+const cardListStyle = {
     borderRadius: "8px",
     width: "360px",
     height: "100%",
@@ -12,7 +12,7 @@ const cardListStyle =  {
     margin: "5px"
 };
 
-const title = function( attrs )
+fwdtypes.title = function( attrs )
 {
     return e$().div( {
         key: "title", // tags can have an id among attributes
@@ -94,5 +94,4 @@ class CardList extends FewComponent
     }
 }
 
-registerClass( CardList );
-registerFunction( title );
+fwdtypes.CardList = CardList;

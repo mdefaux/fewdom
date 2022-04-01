@@ -60,4 +60,4 @@ class CardList extends FewComponent
     }
 }
 
-registerClass( CardList );
+fwdtypes.CardList = CardList;

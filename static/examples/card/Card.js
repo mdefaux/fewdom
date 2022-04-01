@@ -55,4 +55,4 @@ class Card extends FewComponent
     }
 }
 
-registerClass( Card );
+fwdtypes.Card = Card;

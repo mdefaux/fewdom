@@ -3,14 +3,29 @@ if(typeof exports != "undefined"){
     const { FewComponent, FewNode, e$ } = require("../../fewdom/FewDom");
 }
 
+fwdtypes.TimelineSlots = function( attrs )
+{
+    return e$()
+        .repeat$( Array(attrs.count).fill(false).map( () => ( e$()
+            .div$( { style: {
+                display: "table-cell", 
+                minWidth: attrs.cellWidth-2, maxWidth: attrs.cellWidth-2, 
+                border: '1px solid #202030', inner: '&nbsp;'} 
+            } )
+        )) );
+}
 
+const sizes= {
+    headHeight: 40
+}
 
 class Timeline extends FewComponent
 {
 
     onCreate() {
-        this.setState({ 
-            cellWidth: 32, rowHeight: 48 
+        this.setState({
+            cellWidth: 32, 
+            rowHeight: 48
         });
     }
 
@@ -42,12 +57,12 @@ class Timeline extends FewComponent
                         style: {
                             width: "100%",
                             height: "calc( 20% - 5px )",
-                            background: "gray",
-                            border: "1px solid oldlace",
+                            background: "#101020",
+                            border: "1px solid #707070",
                             display: "-webkit-inline-box"
                         }
                     } )
-                        .label$( {}, this.attrs.scene ? "SCORE" : "loading..." )
+                        .label$( {}, this.attrs.scene ? "TIMELINE" : "loading..." )
                     .$div()
                 .$div();
         }
@@ -60,10 +75,12 @@ class Timeline extends FewComponent
                     style: {
                         width: "100%",
                         height: "calc( 20% - 5px )",
-                        background: "gray",
+                        // background: "gray",
                         border: "1px solid oldlace",
                         display: "table-row",
-                        overflowY: 'scroll'
+                        overflowY: 'scroll',
+                        color: 'white',
+                        fontFamily: 'arial'
                     }
                 } )
                 
@@ -76,7 +93,7 @@ class Timeline extends FewComponent
                             border: "1px solid oldlace"
                         }
                     } )
-                        .div( { style: {display: "table-row", height: this.state.rowHeight, maxHeight: this.state.rowHeight} } )
+                        .div( { style: {display: "table-row", height: sizes.headHeight, maxHeight: sizes.headHeight} } )
                             .label$( {display: "inline-flex", inner: "name" } )
                         .$div()
                         .repeat$( rows.map( ( row ) => (e$()
@@ -100,17 +117,21 @@ class Timeline extends FewComponent
                             overflowX: 'scroll'
                         }
                     } )
-                        .div( { style: {display: "inline", height: this.state.rowHeight} } )
-                            .label$( { inner: "timeline" } )
+                        .div( { style: {display: "table-row", height: sizes.headHeight, maxHeight: sizes.headHeight, border: '1px solid orange'} } )
+                            // .label$( { inner: "timeline" } )
+                            .TimelineSlots$( {
+                                count: 200,
+                                cellWidth: this.state.cellWidth
+                            } )
                         .$div()
-                        .repeat$( rows.map( ( row, rowIndex ) => (e$()
+                        .repeat$( rows.map(( row, rowIndex ) => (e$()
                             .div( { 
                                 style: {display: "table-row", position: "relative", height: this.state.rowHeight, minWidth: '200%'} 
                             } )
-                                .repeat$( Array(200).fill(false).map( (e, i) => ( e$()
-                                    .div$( { style: 
-                                        {display: "table-cell", minWidth: this.state.cellWidth-2, maxWidth: this.state.cellWidth-2, border: '1px solid', inner: '&nbsp;'}  } )
-                                )) )
+                                .TimelineSlots$( {
+                                    count: 200,
+                                    cellWidth: this.state.cellWidth
+                                } )
                                 
                                 .TimelineBar$( {
                                     cellWidth: this.state.cellWidth,
@@ -128,4 +149,5 @@ class Timeline extends FewComponent
     }
 }
 
-registerClass( Timeline );
+// registerClass( Timeline );
+fwdtypes.Timeline = Timeline;
