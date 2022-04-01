@@ -6,23 +6,30 @@ if (typeof Proxy == "undefined") {
 function notifierProxy( obj, parent )
 {
     let subs = {};
-    let subscribedCallback = false;
-    let fireNotify = function( )
+    let subscribedCallback = undefined;
+    let subscribedTreeCallback = undefined;
+    let fireNotify = function( valueChange )
     {
         if( subscribedCallback )
-            subscribedCallback?.( obj );
+            subscribedCallback?.( obj, valueChange );
     }
-    let recursiveCallback = function( )
+    let recursiveCallback = function( valueChange )
     {
-        fireNotify();
-        // TODO: recursively call downwards if any subs
-        // parent.recursiveCallback()
+        // recursively calls upwards if any parent
+        subscribedTreeCallback?.( obj, valueChange );
+        parent?.recursiveCallback( valueChange );
     }
     let subscribeOnChange = function( callback ) { 
         subscribedCallback = callback 
     }
     let unsubscribe = function( name ) { 
-        // subscribedCallback = callback 
+        subscribedCallback = false; 
+    }
+    let subscribeOnTreeChange = function( callback ) { 
+        subscribedTreeCallback = callback 
+    }
+    let unsubscribeTreeChange = function( name ) { 
+        subscribedTreeCallback = false; 
     }
     let transferDelegate = function( value, oldParent )
     {
@@ -39,18 +46,29 @@ function notifierProxy( obj, parent )
     // if( typeof obj === 'object' && obj instanceof Proxy )
     // {
     //     return obj;
-    // }
 
-    let proxy = new Proxy( obj, {
+    // }
+    let ref = {
+        _this: this, 
+        proxy: undefined
+    };
+
+    ref.proxy = new Proxy( obj, {
         get(target, name, receiver) {
             if( name === "subscribeOnChange" )
                 return subscribeOnChange;
             if( name === "unsubscribe" )
                 return unsubscribe;
+            if( name === "subscribeOnTreeChange" )
+                return subscribeOnTreeChange;
+            if( name === "unsubscribeTreeChange" )
+                return unsubscribeTreeChange;
             if( name === "transferDelegate" )
                 return transferDelegate;
             if( name === "fireNotify" )
                 return fireNotify;
+            if( name === "recursiveCallback" )
+                return recursiveCallback;
 
             if (!Reflect.has(target, name)) {
                 // console.log("Getting non-existent property '" + name + "'");
@@ -62,9 +80,9 @@ function notifierProxy( obj, parent )
                 return subs[ name ];
             }
             let value = Reflect.get(target, name, receiver);
-            if( typeof value === 'object' )
+            if( value && typeof value === 'object' )
             {
-                return subs[ name ] = notifierProxy( value, this );
+                return subs[ name ] = notifierProxy( value, ref.proxy );
             }
             return value;
         },
@@ -73,7 +91,7 @@ function notifierProxy( obj, parent )
                 // console.log(`Setting non-existent property '${name}', initial value: ${value}`);
                 if( typeof value === 'object' )
                 {
-                    subs[ name ] = notifierProxy( value, this );
+                    subs[ name ] = notifierProxy( value, ref.proxy );
                     // return;
                 }
             }
@@ -89,16 +107,18 @@ function notifierProxy( obj, parent )
                 );
             }
             let result = Reflect.set(target, name, value, receiver);
+            const valueChange = { key: name, value: value };
             if( subs[ name ] )
             {
-                subs[ name ] = subs[ name ].transferDelegate( value, this );
-                subs[ name ].fireNotify();
+                subs[ name ] = subs[ name ].transferDelegate( value, ref.proxy );
+                subs[ name ].fireNotify( valueChange );
             }
-            recursiveCallback();
+            fireNotify( valueChange );
+            recursiveCallback( valueChange );
 
             return result;
         }
     });
 
-    return proxy;
+    return ref.proxy;
 }

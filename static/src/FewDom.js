@@ -196,12 +196,23 @@ class FewNode {
       return this;
     }
   
+    /**Adds a child to current node
+     * child$ method accept undefined or null childObject parameters
+     * 
+     * @param {*} childObject 
+     * @param {*} attributes 
+     * @param {*} inner 
+     * @returns 
+     */
     child$( childObject, attributes, inner )
     {
-      this.child( childObject, attributes, inner );
+        if( !childObject )
+            return this;
+
+        this.child( childObject, attributes, inner );
   
-      // closure tag returns to the component parent (actually 'this' component).
-      return this;
+        // closure tag returns to the component parent (actually 'this' component).
+        return this;
     }
     
 
