@@ -36,8 +36,8 @@ function notifierProxy( obj, parent )
         let otherProxy = notifierProxy( value, oldParent )
         otherProxy.subscribeOnChange( subscribedCallback );
 
-        // Object.entries( subs ).map( 
-        //     ( [key,s]) => ([key, s.transferDelegate( value[key], this ) ] ) );
+        Object.entries( subs ).map( 
+            ( [key,s]) => ([key, s.transferDelegate( value[key], this ) ] ) );
 
         // otherProxy.fireNotify();
         return otherProxy;
@@ -86,8 +86,10 @@ function notifierProxy( obj, parent )
             }
             return value;
         },
-        set(target, name, value, receiver) {
-            if (!Reflect.has(target, name)) {
+        set(target, name, value, receiver) 
+        {
+            if (!Reflect.has(target, name)) 
+            {
                 // console.log(`Setting non-existent property '${name}', initial value: ${value}`);
                 if( typeof value === 'object' )
                 {
