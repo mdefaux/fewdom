@@ -19,22 +19,27 @@ function notifierProxy( obj, parent )
         subscribedTreeCallback?.( obj, valueChange );
         parent?.recursiveCallback( valueChange );
     }
-    let subscribeOnChange = function( callback ) { 
+    let subscribeOnChange = function( callback )
+    {
         subscribedCallback = callback 
     }
-    let unsubscribe = function( name ) { 
-        subscribedCallback = false; 
+    let unsubscribe = function( name )
+    {
+        subscribedCallback = false;
     }
-    let subscribeOnTreeChange = function( callback ) { 
-        subscribedTreeCallback = callback 
+    let subscribeOnTreeChange = function( callback )
+    {
+        subscribedTreeCallback = callback;
     }
-    let unsubscribeTreeChange = function( name ) { 
-        subscribedTreeCallback = false; 
+    let unsubscribeTreeChange = function( name )
+    {
+        subscribedTreeCallback = false;
     }
     let transferDelegate = function( value, oldParent )
     {
         let otherProxy = notifierProxy( value, oldParent )
         otherProxy.subscribeOnChange( subscribedCallback );
+        otherProxy.subscribeOnTreeChange( subscribedTreeCallback );
 
         Object.entries( subs ).map( 
             ( [key,s]) => ([key, s.transferDelegate( value[key], this ) ] ) );
@@ -69,6 +74,16 @@ function notifierProxy( obj, parent )
                 return fireNotify;
             if( name === "recursiveCallback" )
                 return recursiveCallback;
+            if( name === "iterable" )
+            {
+                Object.entries( target ).forEach( ([name,value]) => {
+                    if( !subs[ name ] )
+                    {
+                        subs[ name ] = notifierProxy( value, ref.proxy );
+                    }
+                })
+                return subs;
+            }
 
             if (!Reflect.has(target, name)) {
                 // console.log("Getting non-existent property '" + name + "'");
