@@ -84,7 +84,7 @@ class FewNode {
         if( attrs?.id ) // as a special attrib id is handled separately
             this.id;
         // compares the new attributes to actuals: only differences will be stored in 'nextAttrs'
-        this.nextAttrs = SetHelper.deepDifference( this.attrs, attrs || {} );
+        this.nextAttrs = attrs; // SetHelper.deepDifference( this.attrs, attrs || {} );
     }
 
     static empty() {
@@ -264,16 +264,8 @@ class FewNode {
         e.$repeat = () => {
 
             arrayOrFunction?.forEach( (el,index) => {
-
-                // let nextAttrs = typeof e.getNode().nextAttrs === 'function' ?
-                //     e.getNode().nextAttrs(el, index) : 
-                //     e.getNode().nextAttrs || el;
-                
-                // if( ! nextAttrs?.key && ! nextAttrs?.id )
-                // {
-                //     console.warn( `Repeated objects should have a key or id attribute.`)
-                // }
-                this.child( e.copy().getNode(), /*nextAttrs*/e.getNode().nextAttrs, false /* inner? */, el /* adds argument */, index );
+                this.child( e.copy().getNode(), e.getNode().nextAttrs, 
+                    false /* inner? */, el /* adds argument */, index );
             } );
 
             return this;
@@ -301,6 +293,8 @@ class FewNode {
     {
         _de&&assert( attribs );
         _de&&assert( this.dom );
+        attribs = SetHelper.deepDifference( this.attrs, attribs );
+
         Object.entries( attribs ).forEach( ([name,value]) => {
             // special attributes
             if( name === "render" )
@@ -483,8 +477,6 @@ class FewNode {
 
         // changes attributes
         this._applyAttributes( nextAttrs || {} );
-            // {
-            // ...this.nextAttrs || {}, ...incomingNode?.nextAttrs } );
         
         // removes children no longer present in incoming node
         if( incomingNode && this.children )
@@ -556,72 +548,6 @@ class FewNode {
 
 class FewEmptyNode extends FewNode
 {
-    // constructor(){
-    //     super();
-    // }
-    
-    /**Creates or modify a tag element children of this node element.
-     * 
-     * @param {*} tagName - name of the element tag
-     * @param {*} attributes - attributes of the element
-     * @param {*} inner 
-     * @returns a 
-     */
-    //  tag( tagName, attributes, inner )
-    //  {
-    //     let id = ( attributes && attributes.id );
-
-    //     this.virtualNode = new FewNode();
-    //     this.virtualNode.setup( false, id, tagName );
-    //     this.virtualNode.tagName = tagName;
-    
-    //     if( inner !== undefined && inner !== this.inner ) // virtualNode.$.innerHTML )
-    //     {
-    //         this.virtualNode.nextInner = inner;
-    //     }
-    //     this.virtualNode.setAttrs( attributes );
-    //     return this.virtualNode;
-    // }
-     
-    // apply( compareWith ){
-        // creates if not exists
-        // if( !dom )
-        // {
-        //     if( this.tagName )
-        //         this.dom = document.createElement(this.tagName );
-        //     else if( this.xml )
-        //         this.dom = FewNode.create( this.xml );
-        // }
-        // _de&&assert( this.dom );
-        // // changes innerHTML
-        // if( this.nextInner !== undefined && this.nextInner !== this.dom.innerHTML )
-        // {
-        //     this.dom.innerHTML = this.nextInner;
-        //     this.nextInner = undefined;
-        // }
-
-        // // changes attributes
-        // // console.log( this.attrs );
-        // // console.log( this.nextAttrs );
-        // this._applyAttributes( this.nextAttrs || {} );
-        
-        // // updates children
-        // // console.log( this.childrenSeq );
-        // let newIdMap = this.childrenSeq.reduce( (idMap, ch, index) => {
-
-        //     // TODO: looks for next dom element
-        //     let nextDom = this.dom.childNodes[ index ];
-
-        //     let childDom = ch.apply();
-        //     this.dom.appendChild( childDom );
-
-        //     return {...idMap, [ch.id]: ch };
-        // }, {} );
-
-        // delete this.childrenSeq;
-        // debugger;
-    // }
-
     getNode() 
     {
         return this.childrenSeq[0];
@@ -696,46 +622,6 @@ class FewEmptyNode extends FewNode
       return this.tagVoid( tagName, attribs, inner );
     }
   });
-
-// function registerClass( clazz )
-// {
-//     _de&&assert( clazz.name );
-//     let classname = clazz.name;
-
-//     FewNode.prototype[classname] = function (attribs, inner) {
-//         return this.child( clazz, attribs, inner );
-//     }
-//     FewNode.prototype[`${classname}$`] = function (attribs, inner) {
-//         return this.child$( clazz, attribs, inner );
-//     }
-
-// }
-
-// function registerFunction( f )
-// {
-//     _de&&assert( f.name );
-//     let classname = f.name;
-
-//     FewNode.prototype[classname] = function (attribs, inner) {
-
-//         return this.child( f( attribs, inner ), attribs, inner );
-//       }
-//     FewNode.prototype[`${classname}$`] = function (attribs, inner) {
-//         let ref = {
-//             component: undefined
-//         }
-
-//         ref.update= ( newAttrs ) => {
-//             ref.component?.apply( f(newAttrs || attribs, inner, ref ).getNode() );
-//         }
-
-//         ref.component = this.child( f( attribs, inner, ref ), attribs, inner );
-
-
-//         return this;
-//     }
-
-// }
 
 const pthis = {
     _callDraw( _this ){
