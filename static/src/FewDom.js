@@ -492,6 +492,7 @@ class FewNode {
             Object.entries( this.children )
                 .filter( ([k,]) => (!incomingNode.childrenSeq.find((i) => (i.key===k))) )
                 .forEach( ([k,n]) => {
+                    _de&&assert( n.dom );
                     this.dom.removeChild( n.dom );
                     delete this.children[k];
                 });
@@ -666,6 +667,7 @@ const pthis = {
         // let newDom = compareWith.apply( this.virtualNode );
 
         // _this.virtualNode = drawNode.compare( _this.virtualNode );
+        _this.dom = _this.virtualNode.dom;
 
         return  _this.virtualNode.dom;
     }
@@ -772,6 +774,11 @@ class FewComponent extends FewNode {
 
         return rootDom;
     }
+
+    // get dom()
+    // {
+    //     this.virtualNode.dom;
+    // }
 
     draw() {
         return undefined;
