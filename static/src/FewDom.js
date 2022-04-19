@@ -42,10 +42,12 @@ const SetHelper = {
         let entries = Object.entries( a ).reduce( (p,[key, val])=> {
             // property does not exists in new object
             if( !b[key] )
-                return {...p, key: undefined }; // property cancellation
+                return {...p, [key]: undefined }; // property cancellation
             // checks recursiverly: if false, there are no deep differences
             let recursive = SetHelper.deepDifference( val, b[key], maxDepth-1 );
-            return typeof recursive === "object" && Object.keys(recursive).length === 0 ? p : {...p, key: recursive};
+            return typeof recursive === "object" && 
+                Object.keys(recursive).length === 0 ? 
+                    p : {...p, [key]: recursive};
         }, {} );
 
         // adds those properties of b that were not present in a
@@ -293,9 +295,9 @@ class FewNode {
     {
         _de&&assert( attribs );
         _de&&assert( this.dom );
-        attribs = SetHelper.deepDifference( this.attrs, attribs );
+        let diffAttribs = SetHelper.deepDifference( this.attrs, attribs );
 
-        Object.entries( attribs ).forEach( ([name,value]) => {
+        Object.entries( diffAttribs ).forEach( ([name,value]) => {
             // special attributes
             if( name === "render" )
             {
@@ -355,7 +357,14 @@ class FewNode {
                 return;
             }
 
-            this.dom.setAttribute(name, value);
+            if( value === undefined )
+            {
+                this.dom.removeAttribute( name );
+            }
+            else 
+            {
+                this.dom.setAttribute(name, value);
+            }
         });
 
         this.attrs = attribs;
