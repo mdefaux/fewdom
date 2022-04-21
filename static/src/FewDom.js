@@ -366,6 +366,16 @@ class FewNode {
                 }
                 return;
             }
+            
+            if( name === "enabled" )
+                if( value )
+                {
+                    this.dom.removeAttribute( "disabled" );
+                }
+                else 
+                {
+                    this.dom.setAttribute( "disabled", value );
+                }
 
             if( value === undefined )
             {
