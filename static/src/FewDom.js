@@ -211,6 +211,16 @@ class FewNode {
         if( !childObject )
             return this;
 
+        if( Array.isArray( childObject) )
+        {
+            childObject.forEach( (c) => { this.child$( c, attributes, inner ); });
+            return this;
+        }
+        else if( childObject instanceof FewEmptyNode )
+        {
+            // childObject.childrenSeq.forEach( (c) => { this.child$( c, attributes, inner ); })
+        }
+
         this.child( childObject, attributes, inner );
   
         // closure tag returns to the component parent (actually 'this' component).
@@ -757,6 +767,10 @@ class FewComponent extends FewNode {
         {
             nextAttrs = nextAttrs( this.argvalue, this.argIndex );
         }
+        if( newDef?.childrenSeq?.length > 0 )
+        {
+            this.newChildrenSeq = newDef.childrenSeq;
+        }
 
         // changes attributes
         this._applyAttributes( nextAttrs );
@@ -773,6 +787,11 @@ class FewComponent extends FewNode {
         this.onCreate();
 
         return rootDom;
+    }
+
+    innerRef()
+    {
+        return this.newChildrenSeq || this.childrenSeq;
     }
 
     // get dom()
@@ -803,7 +822,9 @@ const fewd = {
                 let classname = clazz.name;
             
                 FewNode.prototype[classname] = function (attribs, inner) {
-                    return this.child( clazz, attribs, inner );
+                    let c = this.child( clazz, attribs, inner );
+                    c[ `$${classname}` ] = ()=>(this);
+                    return c;
                 }
                 FewNode.prototype[`${classname}$`] = function (attribs, inner) {
                     return this.child$( clazz, attribs, inner );
