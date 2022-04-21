@@ -643,7 +643,7 @@ class FewEmptyNode extends FewNode
 //             this[`${t}$`] = function( attribs, inner ){ return this.tagVoid( t, attribs, inner ); } 
 // https://stackoverflow.com/questions/32496825/proper-way-to-dynamically-add-functions-to-es6-classes
 ["div", "input", "label", "span", "form", "textarea", "img", "a", 
-    "button", "select", "option", "ul", "ol", "li", 
+    "button", "select", "option", "ul", "ol", "li", "i",
     "canvas"].forEach((tagName) => {
     FewNode.prototype[tagName] = function (attribs, inner) {
       return this.tagOpen( tagName, attribs, inner );
