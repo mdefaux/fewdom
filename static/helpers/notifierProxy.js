@@ -120,7 +120,7 @@ function notifierProxy( obj, parent )
             else if( typeof value === 'object' )
             {
                 value = Object.fromEntries(
-                    Object.entries( value ).map( ([key,v]) => ( [ key, Object.assign({}, v) ] ) )
+                    Object.entries( value ).map( ([key,v]) => ( [ key, v /*Object.assign({}, v)*/ ] ) )
                 );
             }
             let result = Reflect.set(target, name, value, receiver);
