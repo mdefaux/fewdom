@@ -431,14 +431,16 @@ class FewNode {
             }
             else if( childDefinition instanceof FewEmptyNode )
             {
-                virtualNode = childDefinition.getNode();
-                if( !virtualNode )
-                    return;
-                attrs = virtualNode.nextAttrs;
+                virtualNode = childDefinition; // .getNode();
+                // virtualNode = childDefinition.getNode();
+                // if( !virtualNode )
+                //     return;
+                // attrs = virtualNode.nextAttrs;
             }
             else if( typeof childDefinition === 'function' )
             {
-                virtualNode = new FewEmptyNode();
+                // virtualNode = new FewEmptyNode();
+                virtualNode = new FewFunctionNode();
                 virtualNode.f = childDefinition;
             }
             else if( typeof childDefinition === 'string' )
@@ -479,6 +481,10 @@ class FewNode {
     replace( ChildClass, attrs ){
     }
 
+    getNodes( parent )
+    {
+        return [this];
+    }
 
 
     apply( incomingNode )
@@ -596,25 +602,32 @@ class FewEmptyNode extends FewNode
     
     getNodes( parent )
     {
-        if( this.f )
-        {
-            let state={
-            };
+        // if( this.f )
+        // {
+        //     let state={
+        //     };
 
-            this.outerSeq =this.callF( this.f, this.nextAttrs, state );
+        //     this.outerSeq =this.callF( this.f, this.nextAttrs, state );
 
             
-            state.update= ()=>{
-                let incoming =this.callF( this.f, this.nextAttrs, state );
-                this.outerSeq[0].apply( incoming[0] );
-            }
-        }
+        //     state.update= ()=>{
+        //         let incoming =this.callF( this.f, this.nextAttrs, state );
+        //         this.outerSeq[0].apply( incoming[0] );
+        //     }
+        // }
         
         // 
-        this.outerSeq.forEach( (c) => {
+        this.childrenSeq.forEach( (c) => {
             c.key= `${this.key}.${c.key}` 
         });
-        return this.outerSeq;
+        return this.childrenSeq.reduce( (ic, next) => (
+            next instanceof FewEmptyNode ?
+                [...ic, ...next.getNodes( this ) ] 
+                :
+                [...ic, next]
+        ), [] );
+
+        return this.childrenSeq;
     }
 
     copy( dest )
@@ -641,6 +654,50 @@ class FewEmptyNode extends FewNode
         return compareWith;
     }
     
+}
+
+class FewFunctionNode extends FewEmptyNode
+{
+    callF( f, attrs, state )
+    {
+        let defer = f( attrs || this.attrs || {}, state, this.childrenSeq );
+
+        return defer.childrenSeq;
+    }
+    
+    getNodes( parent )
+    {
+        if( !this.f )
+        {
+            return [];
+        }
+        let state={
+        };
+
+        this.outerSeq =this.callF( this.f, this.nextAttrs, state );
+
+        
+        state.update= ()=>{
+            let incoming =this.callF( this.f, this.nextAttrs, state );
+            this.outerSeq[0].apply( incoming[0] );
+        }
+        
+        // 
+        // this.outerSeq.forEach( (c) => {
+        //     c.key= `${this.key}.${c.key}` 
+        // });
+        // return this.outerSeq;
+        
+        this.outerSeq.forEach( (c) => {
+            c.key= `${this.key}.${c.key}` 
+        });
+        return this.outerSeq.reduce( (ic, next) => (
+            next instanceof FewEmptyNode ?
+                [...ic, ...next.getNodes( this ) ] 
+                :
+                [...ic, next]
+        ), [] );
+    }    
 }
 
 // this.tagOpen( t, attribs, inner ); } 
