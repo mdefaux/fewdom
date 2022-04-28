@@ -390,14 +390,14 @@ class FewNode {
         this.attrs = attribs;
     }
 
-    child( ChildClass, attrs, inner, argvalue, argIndex ){
-        _de&&assert( ChildClass );
+    child( childDefinition, attrs, inner, argvalue, argIndex ){
+        _de&&assert( childDefinition );
         if( !this.childrenSeq )
             this.childrenSeq = [];
 
         // setups child identifiers
         let id = attrs?.id;
-        let typeName = ChildClass.name || ChildClass.typeName || ChildClass.tagName || typeof ChildClass;
+        let typeName = childDefinition.name || childDefinition.typeName || childDefinition.tagName || typeof childDefinition;
         let key = attrs?.key || id;
 
         // since key is mandatory unique, if not defined by attrs or id 
@@ -420,33 +420,35 @@ class FewNode {
         {
             // if( ChildClass.name )  // if it is a class
             // if( ChildClass instanceof FewComponent )
-            if( ChildClass.name && ChildClass.constructor )
+            if( childDefinition.name && childDefinition.constructor )
             {
-                virtualNode = new ChildClass();
-                if( ! ChildClass instanceof FewComponent )
+                virtualNode = new childDefinition();
+                if( ! childDefinition instanceof FewComponent )
                 {
                     throw new Error( `Class is not a component.` );
                 }
-                virtualNode.typeName = ChildClass.name;
+                virtualNode.typeName = childDefinition.name;
             }
-            else if( ChildClass instanceof FewEmptyNode )
+            else if( childDefinition instanceof FewEmptyNode )
             {
-                virtualNode = ChildClass.getNode();
+                virtualNode = childDefinition.getNode();
+                if( !virtualNode )
+                    return;
                 attrs = virtualNode.nextAttrs;
             }
-            else if( typeof ChildClass === 'function' )
+            else if( typeof childDefinition === 'function' )
             {
                 virtualNode = new FewEmptyNode();
-                virtualNode.f = ChildClass;
+                virtualNode.f = childDefinition;
             }
-            else if( typeof ChildClass === 'string' )
+            else if( typeof childDefinition === 'string' )
             {
                 virtualNode = new FewNode();
-                virtualNode.setup( false, id, ChildClass );
+                virtualNode.setup( false, id, childDefinition );
             }
             else
             {
-                virtualNode = ChildClass;
+                virtualNode = childDefinition;
             }
         }
         
@@ -454,7 +456,9 @@ class FewNode {
         {
             delete attrs.key;
         }
-        virtualNode.setAttrs( attrs );
+        // if attrs are not defined, leave the virtual node nextAttr (as probabily were defined before)
+        if( attrs )
+            virtualNode.setAttrs( attrs );
         virtualNode.key = key;
         virtualNode.typeName = typeName;
 
@@ -580,12 +584,12 @@ class FewEmptyNode extends FewNode
 {
     getNode() 
     {
-        return this.childrenSeq[0];
+        return this.childrenSeq?.[0];
     }
 
     callF( f, attrs, state )
     {
-        let defer = f( attrs, state );
+        let defer = f( attrs, state, this.childrenSeq );
 
         return defer.childrenSeq;
     }
@@ -597,20 +601,20 @@ class FewEmptyNode extends FewNode
             let state={
             };
 
-            this.childrenSeq =this.callF( this.f, this.nextAttrs, state );
+            this.outerSeq =this.callF( this.f, this.nextAttrs, state );
 
             
             state.update= ()=>{
                 let incoming =this.callF( this.f, this.nextAttrs, state );
-                this.childrenSeq[0].apply( incoming[0] );
+                this.outerSeq[0].apply( incoming[0] );
             }
         }
         
         // 
-        this.childrenSeq.forEach( (c) => {
+        this.outerSeq.forEach( (c) => {
             c.key= `${this.key}.${c.key}` 
         });
-        return this.childrenSeq;
+        return this.outerSeq;
     }
 
     copy( dest )
@@ -844,9 +848,12 @@ const fewd = {
             {
                 let f = value;
                 
-                FewNode.prototype[name] = function (attribs, inner) {
-
-                    return this.child( f( attribs, inner ), attribs, inner );
+                FewNode.prototype[name] = function (attribs, inner)
+                {
+                    let c = this.child( f/*( attribs, inner )*/, attribs, inner );
+                    // let c = this.child$( f, attribs, inner );
+                    c[ `$${name}` ] = ()=>(this);
+                    return c;
                 }
                 FewNode.prototype[`${name}$`] = function (attribs, inner) {
                     return this.child$( f, attribs, inner );

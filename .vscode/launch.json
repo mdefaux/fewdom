@@ -65,5 +65,15 @@
                 "*": "${workspaceFolder}/static/*"
             }
         },
+        {
+            "type": "pwa-chrome",
+            "request": "launch",
+            "name": "Studio",
+            "file": "${workspaceFolder}/static/examples/studio/index.html",
+            "sourceMaps": true,
+            "sourceMapPathOverrides": {
+                "*": "${workspaceFolder}/static/*"
+            }
+        },
     ]
 }

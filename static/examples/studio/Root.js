@@ -11,6 +11,44 @@ class AppRoot extends FewComponent
             // opens the root 'div' tag and defines its attributes
             .div( { style: { width: "100%", height: "100%" } } )
                 
+                .SplitPanel( { 
+                    direction: "horizontal",
+                    style: {
+                        height: 'calc( 100vh - 14px )',
+                        // background: "#101010", // attrs.selected ? "rgb(28 73 169)" : "rgb(28 173 69)",
+                        // border: '1px solid #707070',
+                    },
+                    panelStyle: {
+                        // border: '1px solid #707070',
+                        // background: "#101010", // attrs.selected ? "rgb(28 73 169)" : "rgb(28 173 69)",
+                    },
+                    separatorStyle: {
+
+                    }
+                } )
+                    // .div$( { inner: "splitted ONE" } )
+                    .TableList()
+                        .child$( [
+                            "ONE", "TWO", "THREE", "FOUR", "FIVE",
+                            "SIX", "SEVEN", "EIGHT", "NINE", "TEN"
+                            ].map( (e) => (e$()
+                                .div$( {
+                                    style: {
+                                        display: 'table-cell',
+                                        height: '100px',
+                                        minWidth: '100px',
+                                        minHeight: '100px',
+                                        border: '1px solid white',
+                                        background: 'grey',
+                                    },
+                                    inner: e
+                                } )
+                            )) 
+                        )
+                    .$TableList()
+                    .div$( { inner: "splitted TWO" } )
+                .$SplitPanel()
+                
             .$div();        // closes the card div
     }
 }
