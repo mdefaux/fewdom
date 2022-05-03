@@ -13,6 +13,7 @@ class AppRoot extends FewComponent
                 
                 .SplitPanel( { 
                     direction: "horizontal",
+                    position: 400,
                     style: {
                         height: 'calc( 100vh - 14px )',
                         // background: "#101010", // attrs.selected ? "rgb(28 73 169)" : "rgb(28 173 69)",
@@ -31,11 +32,13 @@ class AppRoot extends FewComponent
                         .child$( [
                             "ONE", "TWO", "THREE", "FOUR", "FIVE",
                             "SIX", "SEVEN", "EIGHT", "NINE", "TEN"
-                            ].map( (e) => (e$()
+                            ].map( (e,i) => (e$()
                                 .div$( {
+                                    key: `${e}#${i}`,
                                     style: {
                                         display: 'table-cell',
                                         height: '100px',
+                                        width: '100px',
                                         minWidth: '100px',
                                         minHeight: '100px',
                                         border: '1px solid white',

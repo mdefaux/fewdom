@@ -6,6 +6,16 @@ if(typeof exports != "undefined"){
 fewd.types.SplitPanel = function ( attrs, state, innerChildren )
 {
     let containerDom;
+    let firstSize = state.position ?
+        `${state.position}px`
+        : attrs.position ?
+            `${attrs.position}`
+            : `50%`; // default size
+    let secondSize = state.secondPosition 
+        ? `${state.secondPosition}px` 
+        :attrs.position ?
+            `calc( 100vw - ${attrs.position} )`
+            :  `50%`; // "calc( 50% - 15px )",
     // console.log( attrs.cellWidth * ( state.draggedStart !== undefined ? state.draggedStart : attrs.start ) );
     return e$().div( {
         style: {
@@ -22,16 +32,21 @@ fewd.types.SplitPanel = function ( attrs, state, innerChildren )
             style: {
                 ...attrs.panelStyle,
                 position: "relative",
-                width: state.position ?
-                    `${state.position}px`
-                    : attrs.position ?
-                        `${attrs.position}`
-                        : `50%`, // default size
+                width: firstSize,
+                maxWidth: firstSize,
+                minWidth: firstSize,
                 height: "100%",
                 display: "table-cell"
             }
         } )
-            .child$( innerChildren?.[0] )
+            .child$( innerChildren?.[0], {
+                style: { 
+                    width: firstSize,
+                    maxWidth: firstSize,
+                    minWidth: firstSize,
+
+                }
+            } )
         .$div()
         // draggable separator
         .div( {
@@ -66,11 +81,9 @@ fewd.types.SplitPanel = function ( attrs, state, innerChildren )
             style: {
                 ...attrs.panelStyle,
                 position: "relative",
-                width: state.secondPosition 
-                    ? `${state.secondPosition}px` 
-                    :attrs.position ?
-                        `calc( 100vw - ${attrs.position} )`
-                        :  `50%`, // "calc( 50% - 15px )",
+                width: secondSize,
+                minWidth: secondSize,
+                maxWidth: secondSize,
                 display: "table-cell"
             }
         } )

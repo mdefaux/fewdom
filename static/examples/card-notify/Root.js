@@ -25,15 +25,17 @@ class AppRoot extends FewComponent
                 padding: "10px" 
             } } )
                 // repeats for each element in array list
-                .repeat( this.proxy.list )
-                    // it can use CardList$ function as CardList class was registered
-                    // CardList has a function instead object in attribs parameter
-                    .CardList$( ( entry, index ) => ({
-                        key: `${entry.title}`,
-                        list: entry,
-                        color: colors[ index ]
-                    }))
-                .$repeat()
+                .child$( this.proxy.list
+                    .map( ( entry, index ) => (
+                        // it can use CardList$ function as CardList class was registered
+                        // CardList has a function instead object in attribs parameter
+                        e$().CardList$( {
+                            key: `${entry.title}`,
+                            list: entry,
+                            color: colors[ index ]
+                        })
+                    ))
+                )
             .$div();        // closes the main UI div
     }
 }
