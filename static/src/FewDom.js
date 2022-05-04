@@ -60,7 +60,11 @@ const SetHelper = {
     }
 }
 
-class FewNode {
+/**Virtual node, an element of the virtual dom tree structure.
+ * 
+ */
+class FewNode 
+{
     constructor()
     {
         this.dom = undefined;
@@ -77,7 +81,6 @@ class FewNode {
     }
 
     /**Sets the wrapper attributes.
-     * Only changing attributes will be applied.
      * 
      * @param {*} attrs 
      */
@@ -85,8 +88,8 @@ class FewNode {
     {
         if( attrs?.id ) // as a special attrib id is handled separately
             this.id;
-        // compares the new attributes to actuals: only differences will be stored in 'nextAttrs'
-        this.nextAttrs = attrs; // SetHelper.deepDifference( this.attrs, attrs || {} );
+            
+        this.nextAttrs = attrs; // 
     }
 
     /**Sets the wrapper attributes.
@@ -104,8 +107,7 @@ class FewNode {
         // {
         //     attrs = {...this.attrs, ...attrs};
         // }
-        // compares the new attributes to actuals: only differences will be stored in 'nextAttrs'
-        this.setAttrs(attrs ); // SetHelper.deepDifference( this.attrs, attrs || {} );
+        this.setAttrs( attrs ); // 
     }
 
     static empty() {
@@ -184,7 +186,7 @@ class FewNode {
      * @param {*} inner 
      * @returns a 
      */
-    tag( tagName, attributes, inner )
+    tag( tagName, attributes )
     {
         let id = ( attributes && attributes.id ); // || (`${tagName}-${this.id}-${index}`);
         //   let tagId = (`${tagName}-${this.childrenSeq.length}`);
@@ -192,27 +194,27 @@ class FewNode {
         // virtualNode.setup( false, id, tagName );
         virtualNode.tagName = tagName;
   
-        if( inner !== undefined && inner !== this.inner ) // virtualNode.$.innerHTML )
-        {
-            virtualNode.nextInner = inner;
-        }
+        // if( inner !== undefined && inner !== this.inner ) // virtualNode.$.innerHTML )
+        // {
+        //     virtualNode.nextInner = inner;
+        // }
         this.child( virtualNode, attributes );
 
         return virtualNode;
     }
   
-    tagOpen( tagName, attributes, inner )
+    tagOpen( tagName, attributes )
     {
-      let t = this.tag( tagName, attributes, inner );
+      let t = this.tag( tagName, attributes );
   
       // closure tag returns to the component parent (actually 'this' component).
       t[`$${tagName}`] = () => (this);  
       return t;
     }
   
-    tagVoid( tagName, attributes, inner )
+    tagVoid( tagName, attributes )
     {
-      this.tag( tagName, attributes, inner );  
+      this.tag( tagName, attributes );  
       // the 'void' tag returns the component parent (actually 'this' component).
       return this;
     }
@@ -225,14 +227,14 @@ class FewNode {
      * @param {*} inner 
      * @returns 
      */
-    child$( childObject, attributes, inner )
+    child$( childObject, attributes, argvalue, argIndex )
     {
         if( !childObject )
             return this;
 
         if( Array.isArray( childObject ) )
         {
-            childObject.forEach( (c) => { this.child$( c, attributes, inner ); });
+            childObject.forEach( (c) => { this.child$( c, attributes, argvalue, argIndex ); });
             return this;
         }
         else if( childObject instanceof FewEmptyNode )
@@ -241,11 +243,11 @@ class FewNode {
             
             // this.child$( childObject.map( (c) => { this.child$( c, attributes, inner ); });
 
-            this.child$( childObject.getNodes() );
+            this.child$( childObject.getNodes(), attributes, argvalue, argIndex );
             return this;
         }
 
-        this.child( childObject, attributes, inner );
+        this.child( childObject, attributes, argvalue, argIndex );
   
         // closure tag returns to the component parent (actually 'this' component).
         return this;
@@ -266,8 +268,8 @@ class FewNode {
 
         if( Array.isArray( nodes ) )
         {
-            nodes.forEach( (el) => {
-                this.child( el, el.nextAttrs );
+            nodes.forEach( (el, argIndex) => {
+                this.child( el, el.nextAttrs/*, argvalue, argIndex */ );
             } )
         }
         // let e = e$();
@@ -290,7 +292,7 @@ class FewNode {
             if( Array.isArray( nodes ) )
             {
                 node.forEach( (el, index) => {
-                    this.child( e, e.nextAttrs );
+                    this.child( e, e.nextAttrs, el, index );
                 } )
             }
             e.$repeat = () => (this);
@@ -301,7 +303,7 @@ class FewNode {
 
             arrayOrFunction?.forEach( (el,index) => {
                 this.child( e.copy()/*.getNode()*/, /*e.getNode().nextAttrs*/false, 
-                    false /* inner? */, el /* adds argument */, index );
+                    /* false inner? ,*/ el /* adds argument */, index );
             } );
 
             return this;
@@ -322,9 +324,10 @@ class FewNode {
     }
   
   
-    // Array.prototype.forEach.call( ["source", "meta", "param", "track", "input", "br", "img", "div"], 
-    // (t) => { this[t] = function( attribs, inner ){ return this.tag( t, attribs, inner ); } } );
-  
+    /**Applies the attribute change to dom of current node.
+     * 
+     * @param {*} attribs 
+     */
     _applyAttributes ( attribs )
     {
         _de&&assert( attribs );
@@ -414,27 +417,53 @@ class FewNode {
         this.attrs = attribs;
     }
 
-    child( childDefinition, attrs, inner, argvalue, argIndex ){
+    /**Adds a child to this node. It accepts various type as 
+     * child definition such a component class or a virtual node,
+     * and even a function. It returns always a node wrapping the
+     * new child. The child node is appended to array of children
+     * of current node, that will be 'applied' later to effective
+     * dom element.
+     * 
+     * @param {*} childDefinition could be one of:
+     *  - another node, 
+     *  - a sub class of Component, 
+     *  - a function
+     * @param {*} attrs attributes to aply to new child
+     * @param {*} argvalue 
+     * @param {*} argIndex 
+     * @returns the new child node
+     */
+    child( childDefinition, attrs, argvalue, argIndex ){
         _de&&assert( childDefinition );
         if( !this.childrenSeq )
             this.childrenSeq = [];
 
         // setups child identifiers
+        // id is determined in attributes
         let id = attrs?.id;
+        // type could be the class name of a component or the name of he html tag
         let typeName = childDefinition.name || childDefinition.typeName
             || childDefinition.tagName || attrs?.typeName
             || typeof childDefinition;
-        let key = attrs?.key || childDefinition.key || id;
+        // key is used to index this child among brothers
+        // notice: keys starting with fewd.anonymousCharId char
+        // (by default '*') are not considered and will be redefined
+        let key = attrs?.key 
+            || (childDefinition.key?.[0] !== fewd.anonymousCharId && childDefinition.key) || id;
 
         // since key is mandatory unique, if not defined by attrs or id 
         // defines by counting children with same type
-        if( !key ) {
+        if( !key )
+        {
             let count = this.childrenSeq.reduce( 
                 (cnt, prev) => ((prev.typeName||prev.tagName) === typeName? cnt+1 : cnt ),
                 0 );
+            // creates an unique id with prefix char that tells that this key was
+            // generated automatically and should be redefined when moved to another level
             key = `${fewd.anonymousCharId}${typeName}#${count}`;
         }
         else {
+            // key must be unique among brothers
             if( this.childrenSeq.find( (prev)=> prev.key === key ) )
                 throw new Error( `Duplicate key '${key}' at '${this.key}'. ` );
         }
@@ -444,14 +473,15 @@ class FewNode {
 
         if( !virtualNode )
         {
-            // if( ChildClass.name )  // if it is a class
-            // if( ChildClass instanceof FewComponent )
+            // checks if definition is a class
             if( childDefinition.name && childDefinition.constructor )
             {
+                // instantiate the new component
                 virtualNode = new childDefinition();
+                // checks if it is an instance of subclass of Component, as required
                 if( ! childDefinition instanceof FewComponent )
                 {
-                    throw new Error( `Class is not a component.` );
+                    throw new Error( `Child '${key}' is a Class but is not a component.` );
                 }
                 virtualNode.typeName = childDefinition.name;
             }
@@ -465,18 +495,25 @@ class FewNode {
             }
             else if( typeof childDefinition === 'function' )
             {
-                // virtualNode = new FewEmptyNode();
+                // creates a wrapper componet that will 
+                // call the function when told to redraw
                 virtualNode = new FewFunctionNode();
                 virtualNode.f = childDefinition;
             }
             else if( typeof childDefinition === 'string' )
             {
+                // TODO: handle string case: creates a wrapper 
+                // that will parse the string when applied
                 virtualNode = new FewNode();
                 virtualNode.setup( false, id, childDefinition );
             }
-            else
+            else if( childDefinition instanceof FewNode )
             {
                 virtualNode = childDefinition;
+            }
+            else
+            {
+                throw new Error( `Child '${key}' is instance of unsupported type '${typeof childDefinition}'.` );
             }
         }
         
@@ -635,10 +672,6 @@ class FewNode {
                 return {...idMap, [ch.key]: this.children[ ch.key ] };
             }
 
-            // TODO: looks for next dom element
-            // let nextDom = this.dom.childNodes[ index ];
-            // let nextChild = childrenSeq[ index ];
-
             // this case should never happen
             // if( nextChild?.tagName === ch.tagName && !ch.key && !nextChild.key )
             // {
@@ -648,12 +681,6 @@ class FewNode {
 
             // creates a new dom tree
             index = ch.apply( false, parent, index );
-
-            // inserts new dom if there are next
-            // if( nextDom )
-            //     nextDom.before( childDom )
-            // else 
-            //     this.dom.appendChild( childDom );
 
             return {...idMap, [ch.key]: ch };
         }, {} );
@@ -770,7 +797,7 @@ const pthis =
 
         _de&&assert( drawNode instanceof FewEmptyNode ); // drawNode.getNode?.() );
         // _de&&assert( drawNode.childrenSeq[0] );
-        
+
         return drawNode;
     }
 }
@@ -1068,46 +1095,35 @@ const fewd = {
                 let classname = clazz.name;
             
                 FewNode.prototype[classname] = function (attribs, inner) {
-                    let c = this.child( clazz, attribs, inner );
+                    let c = this.child( clazz, attribs );
                     c[ `$${classname}` ] = ()=>(this);
                     return c;
                 }
                 FewNode.prototype[`${classname}$`] = function (attribs, inner) {
-                    return this.child$( clazz, attribs, inner );
+                    return this.child$( clazz, attribs );
                 }
             }
             else if( typeof value === 'function' )
             {
                 let f = value;
                 
-                FewNode.prototype[name] = function (attribs, inner)
+                FewNode.prototype[name] = function (attribs)
                 {
                     if( !f.name && !attribs?.typeName )
                     {
                         attribs = {...attribs, typeName: name };
                     }
-                    let c = this.child( f/*( attribs, inner )*/, attribs, inner );
+                    let c = this.child( f/*( attribs, inner )*/, attribs );
                     // let c = this.child$( f, attribs, inner );
                     c[ `$${name}` ] = ()=>(this);
                     return c;
                 }
-                FewNode.prototype[`${name}$`] = function (attribs, inner) {
+                FewNode.prototype[`${name}$`] = function (attribs) {
                     if( !f.name && !attribs?.typeName )
                     {
                         attribs = {...attribs, typeName: name };
                     }
-                    return this.child$( f, attribs, inner );
-                    // let ref = {
-                    //     component: undefined
-                    // }
-
-                    // ref.update= ( newAttrs ) => {
-                    //     ref.component?.apply( f(newAttrs || attribs, inner, ref ).getNode() );
-                    // }
-
-                    // ref.component = this.child( f( attribs, inner, ref ), attribs, inner );
-
-                    return this;
+                    return this.child$( f, attribs );
                 }
 
             }
@@ -1137,8 +1153,7 @@ function $dom( xml )
     return FewNode.create( xml );
 }
 
-function e$() { 
-    // return FewNode.empty();
+function e$() {
     return new FewEmptyNode();
 }
 
