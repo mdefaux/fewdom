@@ -145,7 +145,7 @@ class FewNode {
     static documentRoot( rootComponentClass, attrs )
     {
         window.onload = ()=>{
-            let root= new FewNode()
+            let root= new FewEmptyNode()
             root.setup( document.body );
             root.child( rootComponentClass, attrs );
             root.apply();
@@ -533,6 +533,9 @@ class FewNode {
 
     apply( incomingNode, parent, offsetIndex )
     {
+        _de&&assert( parent?.dom );
+        _de&&assert( offsetIndex !== undefined );
+        _de&&assert( !isNaN(offsetIndex) );
         // creates if not exists
         if( !this.dom )
         {
@@ -541,13 +544,10 @@ class FewNode {
             else if( this.xml )
                 this.dom = FewNode.create( this.xml );
                 
-            _de&&assert( parent?.dom );
-            // if( parent )
-            // {
-                this.moveToParent( parent, offsetIndex );
-            // }
+            this.moveToParent( parent, offsetIndex );
         }
-        else if( parent?.dom && this.dom.parentNode !== parent.dom )
+        // if existing, checks if should be moved from its parent to another
+        else if( /*parent?.dom &&*/ this.dom.parentNode !== parent.dom )
         {
             this.moved = true;
             this.moveToParent( parent, offsetIndex );
@@ -559,13 +559,6 @@ class FewNode {
         }
 
         _de&&assert( this.dom );
-        // changes innerHTML
-        // this.nextInner = incomingNode?.nextInner || this.nextInner;
-        // if( this.nextInner !== undefined && this.nextInner !== this.dom.innerHTML )
-        // {
-        //     this.dom.innerHTML = this.nextInner;
-        //     this.nextInner = undefined;
-        // }
 
         let nextAttrs = incomingNode?.nextAttrs || this.nextAttrs;
         // argvalue = argvalue || this.argvalue;
@@ -578,12 +571,20 @@ class FewNode {
         // changes attributes
         this._applyAttributes( nextAttrs || {} );
 
-        this.applyChildren( incomingNode, this, 0 /*offsetIndex*/ );
+        // applies virtual dom modifications to children, taking this as a parent
+        this.applyChildren( incomingNode, this, 0 );
 
         return offsetIndex + 1;
     }
 
-
+    /**Applies virtual dom modifications to children of a given parent.
+     * First will remove children no more existing
+     * 
+     * @param {*} incomingNode the virtual node that contains new attribs and structure
+     * @param {*} parent of children nodes
+     * @param {*} offsetIndex 
+     * @returns 
+     */
     applyChildren( incomingNode, parent, offsetIndex )
     {
         // removes children no longer present in incoming node
@@ -596,6 +597,7 @@ class FewNode {
 
         let incoming = incomingNode? incomingNode.childrenSeq : this.childrenSeq;
 
+        // checks if there are no children: exits immediately
         if( !incoming )
             return offsetIndex; // this.dom;
 
@@ -690,39 +692,29 @@ class FewNode {
 
 class FewEmptyNode extends FewNode
 {
-    getNodeCount() 
+    getNodeCount()
     {
         return this.childrenSeq?.length;
     }
-
-    // TODO: remove
-    // callF( f, attrs, state )
-    // {
-    //     let defer = f( attrs, state, this.childrenSeq );
-
-    //     return defer.childrenSeq;
-    // }
     
-    buildNodes( incomingNode )
-    {
+    // buildNodes( incomingNode )
+    // {
         
-        // 
-        // if( this.key )
-        // {
-        //     this.childrenSeq.forEach( (c) => {
-        //         c.key= `${this.key}.${c.key}` 
-        //     });
-        // }
-        // 
-        return this.childrenSeq.reduce( (ic, next) => (
-            // next instanceof FewEmptyNode ?
-                [...ic, ...next.buildNodes( incomingNode ) ] 
-                // :
-                // [...ic, next]
-        ), [] );
-
-        return this.childrenSeq;
-    }
+    //     // 
+    //     // if( this.key )
+    //     // {
+    //     //     this.childrenSeq.forEach( (c) => {
+    //     //         c.key= `${this.key}.${c.key}` 
+    //     //     });
+    //     // }
+    //     // 
+    //     return this.childrenSeq.reduce( (ic, next) => (
+    //         // next instanceof FewEmptyNode ?
+    //             [...ic, ...next.buildNodes( incomingNode ) ] 
+    //             // :
+    //             // [...ic, next]
+    //     ), [] );
+    // }
 
     apply( incomingNode, parent, offsetIndex )
     {
@@ -732,71 +724,6 @@ class FewEmptyNode extends FewNode
         }
 
         return this.applyChildren( incomingNode, parent, offsetIndex );
-
-        // return super.apply(incomingNode, parent, offsetIndex);
-
-        // TODO: removes nodes
-        this.applyRemoveDom(incomingNode, parent);
-        
-        let childrenSeq = Object.entries( this.children || {} )
-            .sort( ([,a], [,b] ) => (a.index - b.index))
-            .map( ([key,child] ) => (child));
-            
-        let incoming = incomingNode? incomingNode.buildNodes() : this.buildNodes();
-
-        if( !incoming )
-            return this.dom;
-
-        let incomingChildren = incoming; /*incoming.reduce( (ic, next) => (
-            // next instanceof FewEmptyNode ?
-            // this.children?.[ next.key ] ?
-                [...ic, ...next.buildNodes( this, ic.length, this.children?.[ next.key ] ) ] 
-                // :
-                // [...ic, next]
-        ), [] );
-        */
-        let index = offsetIndex || 0;
-        this.children = incomingChildren.reduce( (idMap, ch /*, index */) => {
-
-            // tries a match
-            if( this.children?.[ ch.key ] )
-            {
-                // if position does not match
-                // if( this.children[ ch.key ].index > index )
-                if( this.children[ ch.key ].index > index )
-                {
-                    // moves here
-                    // updates index
-                    console.log( 'Move' );
-                }
-                index = this.children[ ch.key ].apply( ch, parent, index );
-                return {...idMap, [ch.key]: this.children[ ch.key ] };
-            }
-
-            // TODO: looks for next dom element
-            // let nextDom = parent.dom.childNodes[ index ];
-            let nextChild = childrenSeq[ index ];
-
-            // this case should never happen
-            if( nextChild?.tagName === ch.tagName && !ch.key && !nextChild.key )
-            {
-                nextChild.apply( ch );
-                return {...idMap, [ch.key]: nextChild };
-            }
-
-            // creates a new dom tree
-            index = ch.apply( false, parent, index );
-
-            // // inserts new dom if there are next
-            // if( nextDom )
-            //     nextDom.before( childDom )
-            // else 
-            //     parent.dom.appendChild( childDom );
-
-            return {...idMap, [ch.key]: ch };
-        }, {} );
-
-        return index + 1;
     }
 
     copy( dest )
@@ -807,22 +734,7 @@ class FewEmptyNode extends FewNode
         super.copy( dest )
 
         return dest;
-    }
-     
-    // compare( compareWith ) {
-    //     if( !compareWith ) {
-    //         this.virtualNode.apply();
-    //         return this.virtualNode;
-    //     }
-    //     let newDom = compareWith.apply( this.virtualNode );
-
-    //     if( newDom !== compareWith?.dom )
-    //     {
-    //         // TODO: replace
-    //     }
-    //     return compareWith;
-    // }
-    
+    }    
 }
 
 // this.tagOpen( t, attribs, inner ); } 
@@ -839,9 +751,10 @@ class FewEmptyNode extends FewNode
     }
   });
 
-const pthis = {
-    _callDraw( _this ){
-
+const pthis = 
+{
+    _callDraw( _this )
+    {
         let drawNode = _this.draw(); // _this.fnode );
 
         _de&&assert( drawNode );
@@ -857,24 +770,8 @@ const pthis = {
 
         _de&&assert( drawNode instanceof FewEmptyNode ); // drawNode.getNode?.() );
         // _de&&assert( drawNode.childrenSeq[0] );
-
-        // gets the first root 
-        // let compRoot = drawNode.childrenSeq[0];
         
-        // if( !_this.virtualNode )
-        // {
-        //     _this.virtualNode = drawNode; // .getNode();
-        //     // _this.virtualNode.apply();
-        // }
-        // else 
-        // {
-            
-        //     // _this.virtualNode.apply( drawNode.getNode() );
-        // }
         return drawNode;
-        _this.dom = _this.virtualNode.dom;
-
-        return  _this.virtualNode.dom;
     }
 }
 
