@@ -235,15 +235,15 @@ class FewNode {
             childObject.forEach( (c) => { this.child$( c, attributes, inner ); });
             return this;
         }
-        // else if( childObject instanceof FewEmptyNode )
-        // {
-        //     // childObject.childrenSeq.forEach( (c) => { this.child$( c, attributes, inner ); })
+        else if( childObject instanceof FewEmptyNode )
+        {
+            // childObject.childrenSeq.forEach( (c) => { this.child$( c, attributes, inner ); })
             
-        //     // this.child$( childObject.map( (c) => { this.child$( c, attributes, inner ); });
+            // this.child$( childObject.map( (c) => { this.child$( c, attributes, inner ); });
 
-        //     this.child$( childObject.childrenSeq );
-        //     return this;
-        // }
+            this.child$( childObject.getNodes() );
+            return this;
+        }
 
         this.child( childObject, attributes, inner );
   
@@ -300,7 +300,7 @@ class FewNode {
         e.$repeat = () => {
 
             arrayOrFunction?.forEach( (el,index) => {
-                this.child( e.copy().getNode(), e.getNode().nextAttrs, 
+                this.child( e.copy()/*.getNode()*/, /*e.getNode().nextAttrs*/false, 
                     false /* inner? */, el /* adds argument */, index );
             } );
 
@@ -432,7 +432,7 @@ class FewNode {
             let count = this.childrenSeq.reduce( 
                 (cnt, prev) => ((prev.typeName||prev.tagName) === typeName? cnt+1 : cnt ),
                 0 );
-            key = `${typeName}#${count}`;
+            key = `${fewd.anonymousCharId}${typeName}#${count}`;
         }
         else {
             if( this.childrenSeq.find( (prev)=> prev.key === key ) )
@@ -512,6 +512,24 @@ class FewNode {
         return [this];
     }
 
+    moveToParent( parent, offsetIndex )
+    {
+        _de&&assert( this.dom );
+        _de&&assert( parent?.dom );
+        _de&&assert( offsetIndex !== undefined );
+        _de&&assert( !isNaN(offsetIndex) );
+
+        // gets element at current position
+        let nextDom = parent.dom.childNodes[ offsetIndex ];
+
+        // inserts new dom if there are next
+        if( nextDom )
+            nextDom.before( this.dom )
+        else 
+            parent.dom.appendChild( this.dom );
+
+        this.index = offsetIndex;
+    }
 
     apply( incomingNode, parent, offsetIndex )
     {
@@ -522,18 +540,24 @@ class FewNode {
                 this.dom = document.createElement( this.tagName );
             else if( this.xml )
                 this.dom = FewNode.create( this.xml );
-
-            if( parent )
-            {
-                let nextDom = parent.dom.childNodes[ offsetIndex ];
-
-                // inserts new dom if there are next
-                if( nextDom )
-                    nextDom.before( this.dom )
-                else 
-                    parent.dom.appendChild( this.dom );
-            }
+                
+            _de&&assert( parent?.dom );
+            // if( parent )
+            // {
+                this.moveToParent( parent, offsetIndex );
+            // }
         }
+        else if( parent?.dom && this.dom.parentNode !== parent.dom )
+        {
+            this.moved = true;
+            this.moveToParent( parent, offsetIndex );
+        }
+        else if( this.index > offsetIndex )
+        {
+            // TODO: 
+            // this.moveToParent( parent, offsetIndex );
+        }
+
         _de&&assert( this.dom );
         // changes innerHTML
         // this.nextInner = incomingNode?.nextInner || this.nextInner;
@@ -554,7 +578,9 @@ class FewNode {
         // changes attributes
         this._applyAttributes( nextAttrs || {} );
 
-        return this.applyChildren( incomingNode, this, offsetIndex );
+        this.applyChildren( incomingNode, this, 0 /*offsetIndex*/ );
+
+        return offsetIndex + 1;
     }
 
 
@@ -603,7 +629,7 @@ class FewNode {
                     // updates index
                     console.log( 'Move' );
                 }
-                this.children[ ch.key ].apply( ch, parent, index );
+                index = this.children[ ch.key ].apply( ch, parent, index );
                 return {...idMap, [ch.key]: this.children[ ch.key ] };
             }
 
@@ -633,7 +659,7 @@ class FewNode {
         return index + 1;
     }
 
-    applyRemoveDom(incomingNode, parent) 
+    applyRemoveDom(incomingNode, parent)
     {
         if (!incomingNode || !this.children)
             return;
@@ -643,14 +669,17 @@ class FewNode {
             .forEach( ([k, n]) => 
             {
                 _de && assert(n.dom);
-                parent.dom.removeChild(n.dom);
+                if( !n.moved )
+                    parent.dom.removeChild(n.dom);
+                else 
+                    delete n.moved;
                 delete this.children[k];
             });
     }
-    
+
     getNodes()
     {
-        return this.childrenSeq.reduce( (ic, next) => (
+        return !this.childrenSeq ? [] : this.childrenSeq.reduce( (ic, next) => (
             next instanceof FewEmptyNode ?
                 [...ic, ...next.getNodes() ] 
                 :
@@ -1195,7 +1224,10 @@ const fewd = {
     e$() 
     {
         return new FewEmptyNode();
-    }
+    },
+
+    
+    anonymousCharId: '*'
 }
 
 function $( selector )

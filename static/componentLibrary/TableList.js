@@ -7,7 +7,7 @@ fewd.types.TableList = function ( attrs, state, innerChildren )
 {
     let containerDom;
     let blockWidth = attrs.blockWidth ||
-        parseInt( innerChildren?.[0].getNodes()?.[0].nextAttrs?.style.width );
+        parseInt( innerChildren?.[0]?.nextAttrs?.style.width );
     let cols = (blockWidth ? parseInt( parseInt( attrs.style.width ) / blockWidth ) : 1);
     let rows = parseInt( Math.ceil( innerChildren.length / cols ) );
     let mps = [];
