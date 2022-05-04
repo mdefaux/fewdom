@@ -642,6 +642,11 @@ class FewNode
             nextAttrs = nextAttrs( this.argvalue, this.argIndex );
         }
 
+        if( nextAttrs.debug === 'dom-apply' )
+        {
+            debugger;
+        }
+
         // changes attributes
         this._applyAttributes( nextAttrs || {} );
 
@@ -725,6 +730,13 @@ class FewNode
         return index + 1;
     }
 
+    removeDomFrom( parent )
+    {
+        _de && assert(this.dom);
+        _de && assert(parent.dom);
+        parent.dom.removeChild(this.dom);
+    }
+
     applyRemoveDom(incomingNode, parent)
     {
         if (!incomingNode || !this.children)
@@ -734,9 +746,9 @@ class FewNode
             .filter( ([k,]) => (!incomingNode.childrenSeq?.find((i) => (i.key === k))) )
             .forEach( ([k, n]) => 
             {
-                _de && assert(n.dom);
                 if( !n.moved )
-                    parent.dom.removeChild(n.dom);
+                    n.removeDomFrom( parent );
+                    // parent.dom.removeChild(n.dom);
                 else 
                     delete n.moved;
                 delete this.children[k];
@@ -788,6 +800,15 @@ class FewEmptyNode extends FewNode
         }
 
         return this.applyChildren( incomingNode, parent, offsetIndex );
+    }
+
+    removeDomFrom( parent )
+    {
+        this.childrenSeq.forEach( (c) => {
+            c.removeDomFrom( parent ); 
+        });
+        // this.virtualNode.removeDomFrom( parent );
+        // parent.dom.removeChild(this.parent.dom);
     }
 
     copy( dest )
@@ -981,10 +1002,10 @@ class FewComponent extends FewNode
             nextAttrs = nextAttrs( this.argvalue, this.argIndex );
         }
         // TODO: handle children sequence!
-        // if( newDef?.childrenSeq?.length > 0 )
-        // {
-        //     this.newChildrenSeq = newDef.childrenSeq;
-        // }
+        if( newDef?.childrenSeq?.length > 0 )
+        {
+            this.newChildrenSeq = newDef.childrenSeq;
+        }
 
         // changes attributes
         this._applyAttributes( nextAttrs );
@@ -1012,6 +1033,11 @@ class FewComponent extends FewNode
         // this.onCreate();
 
         return index;
+    }
+
+    removeDomFrom( parent )
+    {
+        this.virtualNode.removeDomFrom( parent );
     }
 
     innerRef()
