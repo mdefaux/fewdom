@@ -67,12 +67,10 @@ class FewNode
 {
     constructor()
     {
-        this.dom = undefined;
-        this.id = undefined;
-        this.attrs = {};
     }
 
-    setup( node, id, def ){
+    setup( node, id, def )
+    {
         this.dom = node;
         this.id = id || node?.id || def?.id;
         this.def = def;
@@ -110,11 +108,11 @@ class FewNode
         this.setAttrs( attrs ); // 
     }
 
-    static empty() {
-        var n = new FewNode();
-        n.setup();
-        return n;
-    }
+    // static empty() {
+    //     var n = new FewNode();
+    //     n.setup();
+    //     return n;
+    // }
 
     /**Query select an existing DOM element and return a 
      * wrap reference to it.
@@ -122,7 +120,8 @@ class FewNode
      * @param {string} querySelector 
      * @returns FewNode wrapper pointing to selected element
      */
-    static select( querySelector ){
+    static select( querySelector )
+    {
         var n = typeof querySelector === 'string' ?
             document.querySelector(querySelector) : querySelector;
         
@@ -146,7 +145,8 @@ class FewNode
 
     static documentRoot( rootComponentClass, attrs )
     {
-        window.onload = ()=>{
+        window.onload = ()=>
+        {
             let root= new FewEmptyNode()
             root.setup( document.body );
             root.child( rootComponentClass, attrs );
@@ -157,7 +157,8 @@ class FewNode
     static documentBody( attrs, callback )
     {
         let root = e$();
-        window.onload = async ()=>{
+        window.onload = async ()=>
+        {
             if( callback && typeof callback === 'function' )
                 await callback();
             root.setup( document.body );
@@ -170,7 +171,8 @@ class FewNode
     static onLoad( callback )
     {
         let root = e$();
-        window.onload = async ()=>{
+        window.onload = async ()=>
+        {
             root.setup( document.body );
             if( callback && typeof callback === 'function' )
                 await callback( root );
@@ -183,30 +185,45 @@ class FewNode
      * 
      * @param {*} tagName - name of the element tag
      * @param {*} attributes - attributes of the element
-     * @param {*} inner 
-     * @returns a 
+     * @returns the new created child tag that can be chained with 
+     * its children definition list.
      */
     tag( tagName, attributes )
     {
-        let id = ( attributes && attributes.id ); // || (`${tagName}-${this.id}-${index}`);
-        //   let tagId = (`${tagName}-${this.childrenSeq.length}`);
+        // let id = ( attributes && attributes.id ); // 
         let virtualNode  = new FewNode();
-        // virtualNode.setup( false, id, tagName );
         virtualNode.tagName = tagName;
   
-        // if( inner !== undefined && inner !== this.inner ) // virtualNode.$.innerHTML )
-        // {
-        //     virtualNode.nextInner = inner;
-        // }
         this.child( virtualNode, attributes );
 
         return virtualNode;
     }
   
+    /**Creates or modify a tag element children of this node element.
+     * 
+     * @example 
+        tag( 'div', {} )
+            .label$( { title: 'First child' } )
+            .label$( { title: 'Second child' } )
+        .$div()
+     * However this method is generally not used directly but with 
+     * method shortcuts:
+     * @example 
+        div( {} )
+            .label$( { title: 'First child' } )
+            .label$( { title: 'Second child' } )
+        .$div()
+     * 
+     * @param {*} tagName - name of the element tag
+     * @param {*} attributes - attributes of the element
+     * @returns the new created child tag that can be chained with 
+     * its children definition list.
+     */
     tagOpen( tagName, attributes )
     {
       let t = this.tag( tagName, attributes );
   
+      // TODO: adds all closure mehods and checks if closure name match opening
       // closure tag returns to the component parent (actually 'this' component).
       t[`$${tagName}`] = () => (this);  
       return t;
@@ -215,17 +232,37 @@ class FewNode
     tagVoid( tagName, attributes )
     {
       this.tag( tagName, attributes );  
-      // the 'void' tag returns the component parent (actually 'this' component).
+      // the 'void' tag returns this component and not the created child.
       return this;
     }
   
-    /**Adds a child to current node
-     * child$ method accept undefined or null childObject parameters
+    /**Adds a child or a set of children to current node. This method is 
+     * self-colosing and should be followed-chained with brother nodes.
+     * @example 
+        div( {} )
+            .child$( FirstChildComponentClass, { title: 'First child' } )
+            .child$( SecondChildComponentClass, { title: 'Second child' } )
+        .$div()
+     * 
+     * It accepts an array as parameter:
+     * @example 
+        div( {} )
+            .child$( 
+                myArray.map( arrayElement => (
+                    e$().ul$( { inner: arrayElement } ) 
+                ) ) 
+            )
+        .$div()
+     * 
+     * child$ method accept undefined or null childObject parameters: in this
+     * case it will no affects the children sequence.  This can be useful for
+     * conditional sub tree structures:
+     * @example e$().child$( isVisible && e$().span$( { inner: 'visibile' } ) )
      * 
      * @param {*} childObject 
      * @param {*} attributes 
      * @param {*} inner 
-     * @returns 
+     * @returns current node
      */
     child$( childObject, attributes, argvalue, argIndex )
     {
@@ -807,10 +844,12 @@ class FewComponent extends FewNode
     constructor()
     {
         super();
-        // this.fnode = FewNode.empty();
         this._state = {};
     }
 
+    /**Returns a proxy for the state of this component. 
+     * 
+     */
     get state() 
     {
         if( !this.stateProxy )
@@ -828,7 +867,6 @@ class FewComponent extends FewNode
             });
         }
         return this.stateProxy;
-        return this._state;
     }
     
     __isComponent() { return true; }
@@ -974,49 +1012,12 @@ class FewComponent extends FewNode
         // this.onCreate();
 
         return index;
-
-        // _de&&assert( this.virtualNode.buildNodes() );
-        // _de&&assert( this.virtualNode.buildNodes()[0] );
-        // _de&&assert( this.virtualNode.buildNodes()[0].dom );
-
-        // return this.virtualNode.getNodes()[0].dom;
-
-        // let nextAttrs = newDef?.nextAttrs || this.nextAttrs || {};
-        // if( typeof nextAttrs === 'function' )
-        // {
-        //     nextAttrs = nextAttrs( this.argvalue, this.argIndex );
-        // }
-        // if( newDef?.childrenSeq?.length > 0 )
-        // {
-        //     this.newChildrenSeq = newDef.childrenSeq;
-        // }
-
-        // // changes attributes
-        // this._applyAttributes( nextAttrs );
-
-        // // this._applyAttributes( newDef?.nextAttrs || this.nextAttrs || {} );
-
-        // if( !this.virtualNode )
-        // {
-        //     this.onInit();
-        // }
-        
-        // let rootDom = pthis._callDraw( this );
-
-        // this.onCreate();
-
-        // return rootDom;
     }
 
     innerRef()
     {
         return this.newChildrenSeq || this.childrenSeq;
     }
-
-    // get dom()
-    // {
-    //     this.virtualNode.dom;
-    // }
 
     draw() {
         return undefined;
@@ -1027,54 +1028,12 @@ class FewFunctionNode extends FewComponent
 {
     draw()
     {
-        if( !this._f_state )
-        {
-            this._f_state = {};
-        }
+        // if( !this._f_state )
+        // {
+        //     this._f_state = {};
+        // }
         return this.f( this.nextAttrs || this.attrs || {}, this.state, this.childrenSeq );
     }
-
-    // callF( f, attrs, state )
-    // {
-    //     let defer = f( attrs || this.attrs || {}, state, this.childrenSeq );
-
-    //     return defer.childrenSeq;
-    // }
-    
-    // buildNodes( incomingNode )
-    // {
-    //     if( !this.f )
-    //     {
-    //         return [];
-    //     }
-    //     let state={
-    //     };
-
-    //     this.outerSeq =this.callF( this.f, this.nextAttrs, state );
-
-        
-    //     state.update= ()=>{
-    //         let incoming =this.callF( this.f, this.nextAttrs, state );
-    //         // TODO: apply to every element of the array, using parent DOM
-    //         this.outerSeq[0].apply( incoming[0] );
-    //     }
-        
-    //     // 
-    //     // this.outerSeq.forEach( (c) => {
-    //     //     c.key= `${this.key}.${c.key}` 
-    //     // });
-    //     // return this.outerSeq;
-        
-    //     this.outerSeq.forEach( (c) => {
-    //         c.key= `${this.key}.${c.key}` 
-    //     });
-    //     return this.outerSeq.reduce( (ic, next) => (
-    //         next instanceof FewEmptyNode ?
-    //             [...ic, ...next.buildNodes( incomingNode ) ] 
-    //             :
-    //             [...ic, next]
-    //     ), [] );
-    // }    
 }
 
 
