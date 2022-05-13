@@ -888,7 +888,7 @@ class FewComponent extends FewNode
                     let value = Reflect.get(target._state, name, receiver);
                     return value;
                 },
-                set(target, name, value, receiver) 
+                set(target, name, value) 
                 {
                     target.setState( {[name]: value } );
                     return true;

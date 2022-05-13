@@ -1,11 +1,11 @@
 
-if(typeof exports != "undefined"){
-    const { FewComponent, FewNode, e$ } = require("../../fewdom/FewDom");
-}
+// if(typeof exports != "undefined"){
+//     const { FewComponent, FewNode, e$ } = require("../../fewdom/FewDom");
+// }
 
 fewd.types.TableList = function ( attrs, state, innerChildren )
 {
-    let containerDom;
+    // let containerDom;
     let blockWidth = attrs.blockWidth ||
         parseInt( innerChildren?.[0]?.nextAttrs?.style.width );
     let cols = (blockWidth ? parseInt( parseInt( attrs.style.width ) / blockWidth ) : 1);
@@ -28,14 +28,12 @@ fewd.types.TableList = function ( attrs, state, innerChildren )
     return e$().div( {
         style: {
             ...attrs.style,
-            // position: "absolute",
             display: "table", // "flex", // 
             height: attrs.rowHeight * rows // '100%'
-            // overflowY: "scroll"
         },
-        ref: (ref) => { 
-            containerDom = ref.dom;
-        }
+        // ref: (ref) => { 
+        //     containerDom = ref.dom;
+        // }
     } )
         .child$( mps.map( (row,ir) => ( e$()
             .div( { key: `row#${ir}`, 

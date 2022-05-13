@@ -6,7 +6,8 @@
 
 if( !fewd )
     fewd = typeof exports != "undefined" ? require("../../fewdom/FewDom") : fewd;
-
+// if( !Draggable ) 
+//     Draggable = require("../../helpers/Draggable")
 
 fewd.types.SplitPanel = function ( attrs, state, innerChildren )
 {
