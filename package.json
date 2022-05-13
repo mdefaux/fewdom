@@ -17,5 +17,11 @@
   "bugs": {
     "url": "https://github.com/mdefaux/fewdom/issues"
   },
-  "homepage": "https://github.com/mdefaux/fewdom#readme"
+  "homepage": "https://github.com/mdefaux/fewdom#readme",
+  "devDependencies": {
+    "eslint": "^8.14.0",
+    "husky": "^7.0.4",
+    "lint-staged": "^12.4.1",
+    "prettier": "^2.6.2"
+  }
 }

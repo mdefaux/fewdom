@@ -305,7 +305,7 @@ class FewNode
 
         if( Array.isArray( nodes ) )
         {
-            nodes.forEach( (el, argIndex) => {
+            nodes.forEach( (el /*, argIndex*/) => {
                 this.child( el, el.nextAttrs/*, argvalue, argIndex */ );
             } )
         }
@@ -325,10 +325,10 @@ class FewNode
 
         if( typeof arrayOrFunction === 'function' )
         {
-            let node = arrayOrFunction();
-            if( Array.isArray( nodes ) )
+            let vNode = arrayOrFunction();
+            if( Array.isArray( vNode ) )
             {
-                node.forEach( (el, index) => {
+                vNode.forEach( (el, index) => {
                     this.child( e, e.nextAttrs, el, index );
                 } )
             }
@@ -369,6 +369,12 @@ class FewNode
     {
         _de&&assert( attribs );
         _de&&assert( this.dom );
+
+        if( typeof attribs.onApply === 'function' )
+        {
+            attribs = {...attribs, ...attribs.onApply( attribs ) };
+        }
+
         let diffAttribs = SetHelper.deepDifference( this.attrs, attribs );
 
         Object.entries( diffAttribs ).forEach( ([name,value]) => {
@@ -516,7 +522,7 @@ class FewNode
                 // instantiate the new component
                 virtualNode = new childDefinition();
                 // checks if it is an instance of subclass of Component, as required
-                if( ! childDefinition instanceof FewComponent )
+                if( !(virtualNode instanceof fewd.Component) )
                 {
                     throw new Error( `Child '${key}' is a Class but is not a component.` );
                 }
@@ -579,6 +585,8 @@ class FewNode
 
     
     replace( ChildClass, attrs ){
+        ChildClass;
+        attrs;
     }
 
     buildNodes( incomingNode )
@@ -904,11 +912,17 @@ class FewComponent extends FewNode
 
     onChangeAttrs( oldAttrs, newAttrs, differences )
     {
+        oldAttrs;
+        newAttrs;
+        differences;
         return true;
     }
 
     onChangeState( oldState, newState, differences )
     {
+        oldState;
+        newState;
+        differences;
         return true;
     }
     
@@ -1058,7 +1072,7 @@ class FewFunctionNode extends FewComponent
         // {
         //     this._f_state = {};
         // }
-        return this.f( this.nextAttrs || this.attrs || {}, this.state, this.childrenSeq );
+        return this.f( /*this.nextAttrs ||*/ this.attrs || {}, this.state, this.childrenSeq );
     }
 }
 
@@ -1079,12 +1093,12 @@ const fewd = {
                 let clazz = value;
                 let classname = clazz.name;
             
-                FewNode.prototype[classname] = function (attribs, inner) {
+                FewNode.prototype[classname] = function (attribs /*, inner*/) {
                     let c = this.child( clazz, attribs );
                     c[ `$${classname}` ] = ()=>(this);
                     return c;
                 }
-                FewNode.prototype[`${classname}$`] = function (attribs, inner) {
+                FewNode.prototype[`${classname}$`] = function (attribs /*, inner*/) {
                     return this.child$( clazz, attribs );
                 }
             }
@@ -1114,11 +1128,12 @@ const fewd = {
             }
             else if( typeof value === 'object' )
             {
+                throw new Error( 'Unsupported component type.');
             }
             return Reflect.set(target, name, value, receiver);
         }
     }),
-    FewComponent: FewComponent,
+    Component: FewComponent,
     e$() 
     {
         return new FewEmptyNode();
@@ -1128,15 +1143,15 @@ const fewd = {
     anonymousCharId: '*'
 }
 
-function $( selector )
-{
-    return FewNode.select( selector );
-}
+// function $( selector )
+// {
+//     return FewNode.select( selector );
+// }
 
-function $dom( xml )
-{
-    return FewNode.create( xml );
-}
+// function $dom( xml )
+// {
+//     return FewNode.create( xml );
+// }
 
 function e$() {
     return new FewEmptyNode();
@@ -1150,5 +1165,4 @@ if(typeof exports != "undefined"){
     exports.fewd = fewd;
     exports.e$ = e$;
 }
-else{    
-}
+

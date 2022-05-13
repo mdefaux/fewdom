@@ -1,0 +1,22 @@
+{
+    "env": {
+      "browser": true,
+      "node": true,
+      "es2021": true
+    },
+    "extends": ["eslint:recommended"],
+    "rules": {
+        "no-unused-vars": "warn",
+        "no-undef": "warn",
+        "no-debugger": "off",
+        "no-empty": "warn",
+        "no-constant-condition": "warn",
+        "no-unreachable": "warn"
+    },
+    "globals": {
+      "e$": true,
+      "fewd": true,
+      "require": true,
+      "process": true
+    }
+}

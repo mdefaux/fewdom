@@ -28,16 +28,22 @@ fewd.types.TableList = function ( attrs, state, innerChildren )
     return e$().div( {
         style: {
             ...attrs.style,
-            position: "relative",
-            display: "table-row", // "flex", // 
-            overflowY: "scroll"
+            // position: "absolute",
+            display: "table", // "flex", // 
+            height: attrs.rowHeight * rows // '100%'
+            // overflowY: "scroll"
         },
         ref: (ref) => { 
             containerDom = ref.dom;
         }
     } )
         .child$( mps.map( (row,ir) => ( e$()
-            .div( { key: `row#${ir}`, style: { display: 'table-row' } } )
+            .div( { key: `row#${ir}`, 
+                style: { 
+                    display: 'table-row',
+                    height: attrs.rowHeight || 100
+                } 
+            } )
 
                 .child$( row.map( (cell) => ( e$()
                     .child$( cell )

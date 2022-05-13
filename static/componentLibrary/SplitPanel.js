@@ -1,7 +1,12 @@
 
-if(typeof exports != "undefined"){
-    const { FewComponent, FewNode, e$ } = require("../../fewdom/FewDom");
-}
+/* 
+ * Everything you should know about ‘module’ & ‘require’ in Node.js
+ * https://www.freecodecamp.org/news/require-module-in-node-js-everything-about-module-require-ccccd3ad383/ 
+ */
+
+if( !fewd )
+    fewd = typeof exports != "undefined" ? require("../../fewdom/FewDom") : fewd;
+
 
 fewd.types.SplitPanel = function ( attrs, state, innerChildren )
 {
@@ -35,17 +40,19 @@ fewd.types.SplitPanel = function ( attrs, state, innerChildren )
                 width: firstSize,
                 maxWidth: firstSize,
                 minWidth: firstSize,
-                height: "100%",
+                // height: "100%",
                 display: "table-cell"
             }
         } )
             .child$( innerChildren?.[0], {
-                style: { 
-                    width: firstSize,
-                    maxWidth: firstSize,
-                    minWidth: firstSize,
-
-                }
+                // onApply: (attrs) => ({
+                    style: { 
+                        ... attrs.style,
+                        width: firstSize,
+                        maxWidth: firstSize,
+                        minWidth: firstSize,
+                    }
+                // })
             } )
         .$div()
         // draggable separator
