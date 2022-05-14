@@ -1018,7 +1018,8 @@ class FewComponent extends FewNode
         // TODO: handle children sequence!
         if( newDef?.childrenSeq?.length > 0 )
         {
-            this.newChildrenSeq = newDef.childrenSeq;
+            // this.newChildrenSeq = newDef.childrenSeq;
+            this.childrenSeq = newDef.childrenSeq;
         }
 
         // changes attributes
