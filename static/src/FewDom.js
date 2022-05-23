@@ -879,9 +879,19 @@ const pthis =
     }
 }
 
+/**Component of virtual nodes
+ * 
+ */
 class FewComponent extends FewNode 
 {
+    /**The state of the component
+     * 
+     */
     #private_state;
+
+    /**c'tor setups the initial empty state
+     * 
+     */
     constructor()
     {
         super();
