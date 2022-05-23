@@ -95,7 +95,16 @@ fewd.types.SplitPanel = function ( attrs, state, innerChildren )
                 display: "table-cell"
             }
         } )
-            .child$( innerChildren?.[1] )
+            .child$( innerChildren?.[1], {
+                // onApply: (attrs) => ({
+                    style: { 
+                        // ... attrs.style,
+                        width: secondSize,
+                        maxWidth: secondSize,
+                        minWidth: secondSize,
+                    }
+                // })
+            } )
         .$div()
     .$div()
 }

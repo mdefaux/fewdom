@@ -16,7 +16,7 @@ fewd.types.TimelineBar = function ( attrs, state )
             overflow: "auto",
             height: attrs.rowHeight,
             left: attrs.cellWidth * ( state.draggedStart !== undefined ? state.draggedStart : attrs.start ),
-            minWidth: attrs.cellWidth * ( state.draggedSize !== undefined ? state.draggedSize : attrs.duration )
+            width: attrs.cellWidth * ( state.draggedSize !== undefined ? state.draggedSize : attrs.duration )
         },
         onClick: attrs.onClick
     } )
@@ -25,7 +25,7 @@ fewd.types.TimelineBar = function ( attrs, state )
                 position: "relative"
             }
         } )
-            .div$( {
+            .child$( attrs.changeStarting && e$().div$( {
                 style: {
                     position: "absolute",
                     top: 0,
@@ -46,11 +46,15 @@ fewd.types.TimelineBar = function ( attrs, state )
                         if( state.draggedStart < 0 )
                             state.draggedStart = 0;
                     },
-                    onEnd: (e, state) => { attrs.start = state.draggedStart; },
+                    onEnd: (e, state) => { 
+                        // attrs.start = state.draggedStart;
+                        attrs.changeStarting( state.draggedSize );
+                        state.draggedSize = undefined;
+                    },
                     state: state,
                     instance: {}
                 } )
-            } )
+            } ) )
             .label$( {
                 style: {marginLeft: 20},
                 inner: attrs.label
@@ -69,15 +73,18 @@ fewd.types.TimelineBar = function ( attrs, state )
                 onMouseEnter: (e) => {e.target.style.background= "rgb(28 255 69)"},
                 onMouseLeave: (e) => {e.target.style.background= "rgb(28 125 69)"},
                 ...Draggable.setup( {
-                    onMove: (e, state) => {
+                    onMove: (e, mystate) => {
                         let delta = parseInt( e.deltaX / attrs.cellWidth );
                         state.draggedSize = attrs.duration + delta;
                         
                         if( state.draggedSize < 1 )
                             state.draggedSize = 1;
+                        console.log( {...state } );
                     },
-                    onEnd: (e, state) => { 
+                    onEnd: (e, mystate) => { 
+                        console.log( {...state } );
                         attrs.changeDuration( state.draggedSize ); 
+                        state.draggedSize = undefined;
                     },
                     state: state,
                     instance: {}

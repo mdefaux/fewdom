@@ -101,10 +101,10 @@ class FewNode
         {
             attrs = {...this.nextAttrs, ...attrs};
         }
-        // if( this.attrs )
-        // {
-        //     attrs = {...this.attrs, ...attrs};
-        // }
+        if( this.attrs )
+        {
+            attrs = {...this.attrs, ...attrs};
+        }
         this.setAttrs( attrs ); // 
     }
 
@@ -374,6 +374,11 @@ class FewNode
         {
             attribs = {...attribs, ...attribs.onApply( attribs ) };
         }
+        let debugTrigger = attribs.debug;
+        if( debugTrigger )
+        {
+            delete attribs.debug;
+        }
 
         let diffAttribs = SetHelper.deepDifference( this.attrs, attribs );
 
@@ -458,6 +463,14 @@ class FewNode
         });
 
         this.attrs = attribs;
+
+        
+        if( debugTrigger )
+        {
+            let ex = new fewd.Exception();
+            ex.add( this );
+            throw ex;
+        }
     }
 
     /**Adds a child to this node. It accepts various type as 
@@ -645,13 +658,11 @@ class FewNode
         let nextAttrs = incomingNode?.nextAttrs || this.nextAttrs;
         // argvalue = argvalue || this.argvalue;
         // argIndex = argIndex || this.argIndex;
-        if( typeof nextAttrs === 'function' )
-        {
+        if( typeof nextAttrs === 'function' ) {
             nextAttrs = nextAttrs( this.argvalue, this.argIndex );
         }
 
-        if( nextAttrs.debug === 'dom-apply' )
-        {
+        if( nextAttrs?.debug === 'dom-apply' ) {
             debugger;
         }
 
@@ -716,7 +727,7 @@ class FewNode
                 {
                     // moves here
                     // updates index
-                    console.log( 'Move' );
+                    // console.log( 'Move' );
                 }
                 index = this.children[ ch.key ].apply( ch, parent, index );
                 return {...idMap, [ch.key]: this.children[ ch.key ] };
@@ -870,10 +881,12 @@ const pthis =
 
 class FewComponent extends FewNode 
 {
+    #private_state;
     constructor()
     {
         super();
-        this._state = {};
+        this.#private_state= { state: {}, proxy: undefined };
+        // this.#private_state = {}
     }
 
     /**Returns a proxy for the state of this component. 
@@ -881,21 +894,25 @@ class FewComponent extends FewNode
      */
     get state() 
     {
-        if( !this.stateProxy )
+        let setState = (u)=> (this.setState( u ))
+        if( !this.#private_state.proxy )
         {
-            this.stateProxy = new Proxy( this, {
+            this.#private_state.proxy = new Proxy( this.#private_state, {
+            // return new Proxy( this.#private_state, {
                 get(target, name, receiver) {
-                    let value = Reflect.get(target._state, name, receiver);
+                    let value = Reflect.get(target.state, name, receiver);
                     return value;
                 },
                 set(target, name, value) 
                 {
-                    target.setState( {[name]: value } );
+                    // target.setState( {[name]: value } );
+                    setState( {[name]: value } );
                     return true;
                 }
             });
         }
-        return this.stateProxy;
+        return this.#private_state.proxy;
+        // return this.stateProxy;
     }
     
     __isComponent() { return true; }
@@ -942,30 +959,55 @@ class FewComponent extends FewNode
             // TODO: store resolve callbacks in an array
             this._stateChangeTimeout = setTimeout( () => {
                 // if( this.stateChanged ) // if component is still to be updated...
-                this.update();            // updates.
+                this.applyUpdate();            // updates.
                 resolve();                 // resolves the promise
             }, 1 );                    // delays the updating by 1 millisecond making asynch.
         });
     }
 
-    update()
-    {
+    update() {
+        clearTimeout( this._stateChangeTimeout );
+        this._stateChangeTimeout = setTimeout( () => {
+            // if( this.stateChanged ) // if component is still to be updated...
+            this.applyUpdate();         // updates.
+        }, 1 );                    // delays the updating by 1 millisecond making asynch.
+    }
+
+    applyUpdate() {
         // calculates new state
-        let newstate = { ...this._state, ...this.nextState || {} };
+        let newstate = { ...this.#private_state.state, ...this.nextState || {} };
         // notifies the change status
-        this.onChangeState( this._state, newstate, this.nextState );
+        this.onChangeState( this.#private_state.state, newstate, this.nextState );
         // changes the component state
-        this._state = newstate;
+        this.#private_state.state = newstate;
+        // delete this.#private_state.proxy; // = undefined;
         this.nextState = {};
 
         // redraws ******************
         // let drawNode = pthis._callDraw( this );
 
         // notifies all subscribers
+        // TODO: this.updateSubscribers?.forEach( (c) => (c()) );
+        // this.updateSubscribers = [];
         
-        // this.index = this.virtualNode.apply( drawNode, this.parent, this.index );
-        // this.index = this.virtualNode.apply( false, this.parent, this.index );
-        this.index = this.apply( false, this.parent, this.index );
+        try {
+
+            // this.index = this.virtualNode.apply( drawNode, this.parent, this.index );
+            // this.index = this.virtualNode.apply( false, this.parent, this.index );
+            this.index = this.apply( false, this.parent, this.index );
+        }
+        catch ( err ) {
+
+            if ( err instanceof fewd.Exception ){
+                // err.add( this );
+                console.error( err.message );
+                console.error( err.log() );
+            }
+            else {
+                console.error( err );
+                throw err;
+            }
+        }
 
         // TODO: afterChangeState( oldState )
     }
@@ -1010,7 +1052,7 @@ class FewComponent extends FewNode
         this.parent = parent;
         this.index = index;
         
-        let nextAttrs = newDef?.nextAttrs || this.nextAttrs || {};
+        let nextAttrs = newDef?.nextAttrs || this.nextAttrs || {}; // || this.attrs;
         if( typeof nextAttrs === 'function' )
         {
             nextAttrs = nextAttrs( this.argvalue, this.argIndex );
@@ -1022,27 +1064,64 @@ class FewComponent extends FewNode
             this.childrenSeq = newDef.childrenSeq;
         }
 
-        // changes attributes
-        this._applyAttributes( nextAttrs );
+        // changes attributes, if requested, then resets change request
+        if( !this.attrs || (nextAttrs && Object.keys( nextAttrs ).length > 0) )
+            this._applyAttributes( nextAttrs );
+        this.nextAttrs = false;
 
         
-        if( !this.virtualNode )
-        {
+        if( !this.virtualNode ) {
             this.onInit();
         }
         this.incomingVirtual = pthis._callDraw( this );
-        if( !this.virtualNode )
-        {
-            this.virtualNode = this.incomingVirtual; // .getNode();
-            index = this.virtualNode.apply( false, parent, index );
-            
-            this.onCreate();
+        try {
+            if( !this.virtualNode ) {
+                this.virtualNode = this.incomingVirtual; // .getNode();
+                index = this.virtualNode.apply( false, parent, index );
+                
+                this.onCreate();
+            }
+            else {
+                // this.incomingVirtual = pthis._callDraw( this );
+                
+                index = this.virtualNode.apply( this.incomingVirtual, parent, index );
+            }
         }
-        else
+        catch ( err ) {
+
+            if ( err instanceof fewd.Exception ) {
+                err.add( this );
+                throw err;
+            }
+            else {
+                let newExc = new fewd.Exception();
+                newExc.message = err.message;
+                newExc.add( this );
+                throw newExc;
+            }
+        }
+        
+        nextAttrs = this.attrs;
+
+        if( typeof nextAttrs?.ref === 'function' ) {
+            nextAttrs.ref( this );
+        }
+
+        let debugTrigger = typeof nextAttrs.debug === 'function' ? 
+            nextAttrs.debug( nextAttrs ) : nextAttrs.debug;
+        if( debugTrigger )
         {
-            // this.incomingVirtual = pthis._callDraw( this );
-            
-            index = this.virtualNode.apply( this.incomingVirtual, parent, index );
+            let ex = new fewd.Exception();
+            ex.add( this );
+            throw ex;
+        }
+        
+        let logTrigger = typeof nextAttrs.log === 'function' ? nextAttrs.log( nextAttrs, {...this.#private_state.state } ) : 
+            nextAttrs.log === true ? {key: this.key, attrs: nextAttrs, state: {...this.#private_state.state } } :
+                nextAttrs.log;
+        if( logTrigger )
+        {
+            console.log( logTrigger );
         }
 
         // this.onCreate();
@@ -1140,6 +1219,27 @@ const fewd = {
         return new FewEmptyNode();
     },
 
+    Exception: class Exception extends Error {
+
+        add( comp )
+        {
+            if ( !this.fewdStackTrace )
+            {
+                this.fewdStackTrace = [];
+            }
+            this.fewdStackTrace.push( comp );
+        }
+
+        log()
+        {
+            return this.fewdStackTrace ? 
+                this.fewdStackTrace.map( (e)=> ({
+                    key: e.key,
+                    attrs: e.attrs,
+                    // state: {...e.state.#private_state}
+                })) : [];
+        }
+    },
     
     anonymousCharId: '*'
 }
