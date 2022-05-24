@@ -79,10 +79,8 @@ fewd.types.TimelineBar = function ( attrs, state )
                         
                         if( state.draggedSize < 1 )
                             state.draggedSize = 1;
-                        console.log( {...state } );
                     },
                     onEnd: (e, mystate) => { 
-                        console.log( {...state } );
                         attrs.changeDuration( state.draggedSize ); 
                         state.draggedSize = undefined;
                     },
