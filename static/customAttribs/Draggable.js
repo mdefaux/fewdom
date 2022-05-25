@@ -33,8 +33,6 @@
         document.addEventListener( 'mouseup', this.endHandler );
         // e.target.setPointerCapture(e.pointerId);
 
-        // if( this.state )
-        //     this.state.dragging = true;
         e.preventDefault();
     }
     move( e ) {
@@ -47,13 +45,8 @@
         document.removeEventListener( 'mousemove', this.moveHandler );
         document.removeEventListener( 'mouseup', this.endHandler );
         // e.target.releasePointerCapture(e.pointerId);
-        
-        // if ( this.state ) {
-        //     this.state.dragging = false;
-        // }
-        
+                
         this.dragging = false;
         this.onEnd?.(e, this.state);
-        // this.state?.update?.( /*this.state*/ );
     }
-};
+}
