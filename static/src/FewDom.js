@@ -365,37 +365,57 @@ class FewNode
      * 
      * @param {*} attribs 
      */
-    _applyAttributes ( attribs )
-    {
+    _applyAttributes ( attribs ) {
         _de&&assert( attribs );
         _de&&assert( this.dom );
 
-        if( typeof attribs.onApply === 'function' )
-        {
+        if ( typeof attribs.onApply === 'function' ) {
             attribs = {...attribs, ...attribs.onApply( attribs ) };
         }
         let debugTrigger = attribs.debug;
-        if( debugTrigger )
-        {
+        if ( debugTrigger ) {
             delete attribs.debug;
         }
+
+        Object.entries( attribs ).forEach( ([name,value]) => {
+            if ( name === 'Draggable' ) {
+                if ( !this.customAttrib ) {
+                    this.customAttrib = {};
+                }
+                if ( !this.customAttrib[ name ] ) {
+                    this.customAttrib[ name ] = new Draggable();
+                }
+                attribs = {
+                    ...attribs, 
+                    ...this.customAttrib[ name ].setup( this, attribs ) 
+                };
+                this.customAttrib[ name ].apply( value );
+                delete attribs[ name ];
+            }
+        } );
 
         let diffAttribs = SetHelper.deepDifference( this.attrs, attribs );
 
         Object.entries( diffAttribs ).forEach( ([name,value]) => {
             // special attributes
-            if( name === "render" )
-            {
+            if ( name === "render" ) {
                 value( this );        // executes immediatly the render function
                 return;
             }
 
-            if( name === "ref" )
-            {
-                if( typeof value === 'function' )
-                {
+            if ( name === "ref" ) {
+                if ( typeof value === 'function' ) {
                     value( this );
                     return;
+                }
+            }
+            else if ( name === 'Draggable' ) {
+                if ( !this.customAttrib ) {
+                    this.customAttrib = {};
+                }
+                if ( !this.customAttrib[ name ] ) {
+                    this.customAttrib[ name ] = new Draggable();
+                    this.customAttrib[ name ].setup( this, this.attrs );
                 }
             }
     
@@ -465,11 +485,13 @@ class FewNode
         this.attrs = attribs;
 
         
-        if( debugTrigger )
-        {
+        if ( debugTrigger === 'exception' ) {
             let ex = new fewd.Exception();
             ex.add( this );
             throw ex;
+        }
+        else if ( debugTrigger === 'trace' ) {
+            console.log( 'trace on' );
         }
     }
 
@@ -1119,11 +1141,13 @@ class FewComponent extends FewNode
 
         let debugTrigger = typeof nextAttrs.debug === 'function' ? 
             nextAttrs.debug( nextAttrs ) : nextAttrs.debug;
-        if( debugTrigger )
-        {
+        if ( debugTrigger === 'exception' ) {
             let ex = new fewd.Exception();
             ex.add( this );
             throw ex;
+        }
+        else if ( debugTrigger === 'trace' ) {
+            console.log( 'trace on' );
         }
         
         let logTrigger = typeof nextAttrs.log === 'function' ? nextAttrs.log( nextAttrs, {...this.#private_state.state } ) : 

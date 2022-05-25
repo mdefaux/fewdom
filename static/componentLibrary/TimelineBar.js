@@ -72,7 +72,8 @@ fewd.types.TimelineBar = function ( attrs, state )
                 },
                 onMouseEnter: (e) => {e.target.style.background= "rgb(28 255 69)"},
                 onMouseLeave: (e) => {e.target.style.background= "rgb(28 125 69)"},
-                ...Draggable.setup( {
+                // ...Draggable.setup( {
+                Draggable: {
                     onMove: (e, mystate) => {
                         let delta = parseInt( e.deltaX / attrs.cellWidth );
                         state.draggedSize = attrs.duration + delta;
@@ -86,7 +87,7 @@ fewd.types.TimelineBar = function ( attrs, state )
                     },
                     state: state,
                     instance: {}
-                } )
+                }
             } )
         .$div()
     .$div();
