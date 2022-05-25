@@ -20,14 +20,14 @@ fewd.types.SplitPanel = function ( attrs, state, innerChildren )
     let secondSize = state.secondPosition 
         ? `${state.secondPosition}px` 
         :attrs.position ?
-            `calc( 100vw - ${attrs.position} )`
+            `calc( 100vw - ${attrs.position} - 32 )`
             :  `50%`; // "calc( 50% - 15px )",
     // console.log( attrs.cellWidth * ( state.draggedStart !== undefined ? state.draggedStart : attrs.start ) );
     return e$().div( {
         style: {
             ...attrs.style,
             position: "relative",
-            display: "table-row"
+            display: "table"
         },
         ref: (ref) => { 
             containerDom = ref.dom;
@@ -38,6 +38,7 @@ fewd.types.SplitPanel = function ( attrs, state, innerChildren )
             style: {
                 ...attrs.panelStyle,
                 position: "relative",
+                // position: "absolute",
                 width: firstSize,
                 maxWidth: firstSize,
                 minWidth: firstSize,
@@ -46,14 +47,11 @@ fewd.types.SplitPanel = function ( attrs, state, innerChildren )
             }
         } )
             .child$( innerChildren?.[0], {
-                // onApply: (attrs) => ({
-                    style: { 
-                        ... attrs.style,
-                        width: firstSize,
-                        maxWidth: firstSize,
-                        minWidth: firstSize,
-                    }
-                // })
+                style: { 
+                    width: firstSize,
+                    maxWidth: firstSize,
+                    minWidth: firstSize,
+                }
             } )
         .$div()
         // draggable separator
@@ -68,7 +66,21 @@ fewd.types.SplitPanel = function ( attrs, state, innerChildren )
                 position: "relative",
                 display: "table-cell",
             },
-            ...Draggable.setup( {
+            // ...Draggable.setup( {
+            //     onMove: (e, state) => {
+            //         // update state with dragged position
+            //         state.position = e.x;
+                    
+            //         if( state.position < attrs.minSize || 0 )
+            //             state.position = attrs.minSize;
+
+            //         state.secondPosition = containerDom.clientWidth - state.position;
+            //     },
+            //     // onEnd: (e, state) => { attrs.start = state.draggedStart; },
+            //     state: state,
+            //     instance: {}
+            // } )
+            Draggable: {
                 onMove: (e, state) => {
                     // update state with dragged position
                     state.position = e.x;
@@ -81,7 +93,7 @@ fewd.types.SplitPanel = function ( attrs, state, innerChildren )
                 // onEnd: (e, state) => { attrs.start = state.draggedStart; },
                 state: state,
                 instance: {}
-            } )
+            }
         } )
         .$div()
         // second panel
@@ -96,14 +108,11 @@ fewd.types.SplitPanel = function ( attrs, state, innerChildren )
             }
         } )
             .child$( innerChildren?.[1], {
-                // onApply: (attrs) => ({
-                    style: { 
-                        // ... attrs.style,
-                        width: secondSize,
-                        maxWidth: secondSize,
-                        minWidth: secondSize,
-                    }
-                // })
+                style: { 
+                    width: secondSize,
+                    maxWidth: secondSize,
+                    minWidth: secondSize,
+                }
             } )
         .$div()
     .$div()
