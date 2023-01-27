@@ -3,7 +3,7 @@ if (typeof Proxy == "undefined") {
     throw new Error("This browser doesn't support Proxy");
 }
 
-function notifierProxy( obj, parent )
+function notifierProxy( obj, parent, id )
 {
     let subs = {};
     let subscribedCallback = undefined;
@@ -37,15 +37,21 @@ function notifierProxy( obj, parent )
     }
     let transferDelegate = function( value, oldParent )
     {
-        let otherProxy = notifierProxy( value, oldParent )
+        let otherProxy = notifierProxy( value, oldParent, id )
         otherProxy.subscribeOnChange( subscribedCallback );
         otherProxy.subscribeOnTreeChange( subscribedTreeCallback );
 
-        Object.entries( subs ).map( 
-            ( [key,s]) => ([key, s.transferDelegate( value[key], this ) ] ) );
+        // Object.entries( subs ).map( 
+        //     ( [key,s]) => ([key, s.transferDelegate( value[key], this ) ] ) );
 
+        // Object.entries( value ).map( 
+        //     ( [key,s]) => ([key, s.transferDelegate( value[key], this ) ] ) );
+    
         // otherProxy.fireNotify();
         return otherProxy;
+    }
+    let _notifier_getPath = function() {
+        return parent ? [ ...parent._notifier_getPath(), id ] : [];
     }
 
     // if( typeof obj === 'object' && obj instanceof Proxy )
@@ -74,12 +80,14 @@ function notifierProxy( obj, parent )
                 return fireNotify;
             if( name === "recursiveCallback" )
                 return recursiveCallback;
+            if( name === "_notifier_getPath" )
+                return _notifier_getPath;
             if( name === "iterable" )
             {
                 Object.entries( target ).forEach( ([name,value]) => {
                     if( !subs[ name ] )
                     {
-                        subs[ name ] = notifierProxy( value, ref.proxy );
+                        subs[ name ] = notifierProxy( value, ref.proxy, name );
                     }
                 })
                 return subs;
@@ -97,7 +105,7 @@ function notifierProxy( obj, parent )
             let value = Reflect.get(target, name, receiver);
             if( value && typeof value === 'object' )
             {
-                return subs[ name ] = notifierProxy( value, ref.proxy );
+                return subs[ name ] = notifierProxy( value, ref.proxy, name );
             }
             return value;
         },
@@ -108,7 +116,7 @@ function notifierProxy( obj, parent )
                 // console.log(`Setting non-existent property '${name}', initial value: ${value}`);
                 if( typeof value === 'object' )
                 {
-                    subs[ name ] = notifierProxy( value, ref.proxy );
+                    subs[ name ] = notifierProxy( value, ref.proxy, name );
                     // return;
                 }
             }
@@ -134,6 +142,15 @@ function notifierProxy( obj, parent )
             recursiveCallback( valueChange );
 
             return result;
+        },
+        deleteProperty(target, name) {
+          if (name in target) {
+            const valueChange = { key: name, value: target[name] };
+            delete target[name];
+            fireNotify( valueChange );
+            recursiveCallback( valueChange );
+            return true;
+          }
         }
     });
 
