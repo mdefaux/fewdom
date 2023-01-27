@@ -78,6 +78,14 @@ class FewNode
         return this;
     }
 
+    attach( node, id, def ) {
+        return this.setup( node, id, def );
+    }
+
+    $attach() {
+        this.applyUpdate();
+    }
+
     /**Sets the wrapper attributes.
      * 
      * @param {*} attrs 
@@ -106,6 +114,16 @@ class FewNode
             attrs = {...this.attrs, ...attrs};
         }
         this.setAttrs( attrs ); // 
+    }
+
+    getAttrs() {
+        let nextAttrs = /*incomingNode?.nextAttrs || */
+            this.nextAttrs || this.attrs || {};
+        if( typeof nextAttrs === 'function' )
+        {
+            nextAttrs = nextAttrs( this.argvalue, this.argIndex );
+        }
+        return nextAttrs;
     }
 
     // static empty() {
@@ -163,7 +181,7 @@ class FewNode
                 await callback();
             root.setup( document.body );
             root.setAttrs( attrs );
-            root.apply();
+            root.applyUpdate();
         }
         return root;
     }
@@ -176,7 +194,7 @@ class FewNode
             root.setup( document.body );
             if( callback && typeof callback === 'function' )
                 await callback( root );
-            root.apply();
+            root.applyUpdate();
         }
         return root;
     }
@@ -394,7 +412,8 @@ class FewNode
             }
         } );
 
-        let diffAttribs = SetHelper.deepDifference( this.attrs, attribs );
+        // let diffAttribs = SetHelper.deepDifference( this.attrs, attribs );
+        let diffAttribs = attribs;
 
         Object.entries( diffAttribs ).forEach( ([name,value]) => {
             // special attributes
@@ -408,6 +427,10 @@ class FewNode
                     value( this );
                     return;
                 }
+            }
+            else if ( name === "value" ) {
+                this.dom.value = (value !== undefined ? value : null);
+                return;
             }
             else if ( name === 'Draggable' ) {
                 if ( !this.customAttrib ) {
@@ -444,12 +467,33 @@ class FewNode
                 return;
             }
 
-            if( name === "style" && typeof value === "object")
+            if( name === "style" && typeof value === "object" )
             {
                 //   this.dom.style = value;
                 Object.entries( value ).forEach( ([styleKey,styleValue]) => {
+
+                    // In standard mode (no quirks) some attributes like width/height
+                    // requires to be a string in '0px' format.
+                    // This detects if value is a number and compose a string adding 'px' suffix
+                    // TODO: adds a list of attributes that should have to be stated
+                    // TODO: add an optional behaviour flag here to disable or throw an exception
+                    if( typeof styleValue !== 'string' && !isNaN(styleValue) ) {
+
+                        styleValue = `${styleValue}px`;
+                    }
+
                     this.dom.style[styleKey] = styleValue;
                 });
+
+                // https://stackoverflow.com/questions/2664045/how-to-get-an-html-elements-style-values-in-javascript
+                // 
+                this.attrs?.style && Object.keys( this.attrs.style ).forEach( (styleKey) => {
+                    if ( value[ styleKey ] === undefined ) {
+                        this.dom.style[styleKey] = undefined;
+                    }
+
+                });
+
                 return;
             }
 
@@ -484,6 +528,9 @@ class FewNode
 
         this.attrs = attribs;
 
+        if ( typeof this.attrs.onReady === 'function' ) {
+            this.attrs.onReady( this );
+        }
         
         if ( debugTrigger === 'exception' ) {
             let ex = new fewd.Exception();
@@ -531,11 +578,10 @@ class FewNode
 
         // since key is mandatory unique, if not defined by attrs or id 
         // defines by counting children with same type
-        if( !key )
-        {
-            let count = this.childrenSeq.reduce( 
-                (cnt, prev) => ((prev.typeName||prev.tagName) === typeName? cnt+1 : cnt ),
-                0 );
+        if (!key) {
+            let count = this.childrenSeq.reduce(
+                (cnt, prev) => ((prev.typeName || prev.tagName) === typeName ? cnt + 1 : cnt),
+                0);
             // creates an unique id with prefix char that tells that this key was
             // generated automatically and should be redefined when moved to another level
             key = `${fewd.anonymousCharId}${typeName}#${count}`;
@@ -552,8 +598,10 @@ class FewNode
         if( !virtualNode )
         {
             // checks if definition is a class
-            if( childDefinition.name && childDefinition.constructor )
-            {
+            if( childDefinition.name && childDefinition.constructor &&
+                typeof childDefinition === 'function' && 
+                /^\s*class\s+/.test(childDefinition.toString())
+                ) {
                 // instantiate the new component
                 virtualNode = new childDefinition();
                 // checks if it is an instance of subclass of Component, as required
@@ -688,22 +736,41 @@ class FewNode
             debugger;
         }
 
-        // changes attributes
-        this._applyAttributes( nextAttrs || {} );
+        // changes attributes WHICH is the correct order?
+        // this._applyAttributes( nextAttrs || {} );
+
+        // if ( typeof this.attrs.beforeApply === 'function' ){ 
+        //     this.attrs.beforeApply( this, {...this.state} );
+        // }
 
         // applies virtual dom modifications to children, taking this as a parent
         this.applyChildren( incomingNode, this, 0 );
+
+
+        // changes attributes
+        this._applyAttributes( nextAttrs || {} );
+        
+        if ( typeof this.attrs.beforeApply === 'function' ){ 
+            this.attrs.beforeApply( this, {...this.state} );
+        }
+
+
+        if ( typeof this.attrs.afterApply === 'function' ){ 
+            this.attrs.afterApply( this, {...this.state} );
+        }
 
         return offsetIndex + 1;
     }
 
     /**Applies virtual dom modifications to children of a given parent.
-     * First will remove children no more existing
+     * First will remove children no more existing,
+     * then compares the incoming nodes sequence with actual children and
+     * determine if a node should be updated or created and added to list.
      * 
      * @param {*} incomingNode the virtual node that contains new attribs and structure
      * @param {*} parent of children nodes
      * @param {*} offsetIndex 
-     * @returns 
+     * @returns the resulting index after updating all children
      */
     applyChildren( incomingNode, parent, offsetIndex )
     {
@@ -718,9 +785,11 @@ class FewNode
         let incoming = incomingNode? incomingNode.childrenSeq : this.childrenSeq;
 
         // checks if there are no children: exits immediately
-        if( !incoming )
+        if( !incoming ){
             return offsetIndex; // this.dom;
+        }
 
+        // TODO: remove this step
         let incomingChildren = incoming.reduce( (ic, next) => (
             // next instanceof FewEmptyNode ?
 
@@ -732,27 +801,21 @@ class FewNode
 
             [...ic, next]
         ), [] );
-        
-        
-        // removes children no longer present in incoming node
-        // this.applyRemoveDom(incomingNode, parent);
 
         let index = offsetIndex || 0;
-        this.children = incomingChildren.reduce( (idMap, ch /*, index*/) => {
+        // creates a new children map, comparing the existing 
+        // sequence with the incoming one
+        this.children = incomingChildren.reduce((idMap, ch /*, index*/) => {
 
-            // tries a match
-            if( this.children?.[ ch.key ] )
-            {
+            // tries to find the incoming node in current children map
+            if (this.children?.[ch.key]?.same( ch ) ) {
                 // if position does not match
                 // if( this.children[ ch.key ].index > index )
-                if( this.children[ ch.key ].index > index )
-                {
-                    // moves here
-                    // updates index
-                    // console.log( 'Move' );
-                }
-                index = this.children[ ch.key ].apply( ch, parent, index );
-                return {...idMap, [ch.key]: this.children[ ch.key ] };
+                // if (this.children[ch.key].index > index) {
+                // }
+
+                index = this.children[ch.key].apply(ch, parent, index);
+                return { ...idMap, [ch.key]: this.children[ch.key] };
             }
 
             // this case should never happen
@@ -762,12 +825,14 @@ class FewNode
             //     return {...idMap, [ch.key]: nextChild };
             // }
 
-            // creates a new dom tree
+            // creates a new dom tree. The index is updated as the new dom may
+            // add more than one child to current node
             index = ch.apply( false, parent, index );
 
             return {...idMap, [ch.key]: ch };
         }, {} );
 
+        // returns the next index after the last child index
         return index + 1;
     }
 
@@ -775,25 +840,77 @@ class FewNode
     {
         _de && assert(this.dom);
         _de && assert(parent.dom);
-        parent.dom.removeChild(this.dom);
+
+        if ( parent.dom === this.dom.parentNode ) {
+
+            parent.dom.removeChild(this.dom);
+        }
+        else { 
+            //this.dom.parentNode.removeChild(this.dom);
+        }
+
+        delete this.dom;
     }
 
-    applyRemoveDom(incomingNode, parent)
-    {
-        if (!incomingNode || !this.children)
-            return;
+    /**Returns the type of the node. This method is used
+     * to compare two node and determine if they refers to the 
+     * same component. Method overriden in Function nodes where
+     * the typeName is always 'function' but type returns the 
+     * pointer to the component function.
+     */
+    get type () {
+        return this.typeName;
+    }
 
-        Object.entries(this.children)
-            .filter( ([k,]) => (!incomingNode.childrenSeq?.find((i) => (i.key === k))) )
-            .forEach( ([k, n]) => 
-            {
-                if( !n.moved )
-                    n.removeDomFrom( parent );
-                    // parent.dom.removeChild(n.dom);
-                else 
-                    delete n.moved;
-                delete this.children[k];
-            });
+    /**Two nodes are considered the same, if they have 
+     * the same key and the same type
+     * 
+     * @param {*} other 
+     * @returns true if the node refers to same component
+     */
+    same ( other ) {
+        return (
+            this.key === other.key         // checks if have the same keys
+            && this.type === other.type    // checks if node has the same type
+        )
+    }
+
+    /**Removes the nodes not present in incoming structure
+     * 
+     * @param {*} incomingNode 
+     * @param {*} parent 
+     * @returns 
+     */
+    applyRemoveDom(incomingNode, parent) {
+        if (!incomingNode || !this.children) {
+            return;
+        }
+        _de && fewd.checkDebugStep(this, 'before-start-child-tree-removing');
+
+        // for each child in current node
+        Object.entries(this.children).filter(([, n]) => (
+            // tries to find the equivalent of incoming node 
+            // into the actual node children array sequence
+            !incomingNode.childrenSeq?.find((i) => (
+                i.same( n )    // checks if node has the same type
+            ))
+        )).forEach(([k, n]) => {
+            _de && fewd.checkDebugStep(this, 'before-child-tree-removing', n.key);
+            // checks a particular case: the node has been moved to another parent
+            // so sould not be destroyed but
+            if ( /*true ||*/ !n.moved) {
+                n.removeDomFrom(parent);
+                // parent.dom.removeChild(n.dom);
+            } else {
+                // the node was moved to another parent, resets the moved flag
+                // and simply removes the node from current node children list
+                delete n.moved;
+            }
+            // removes the node from current node children list
+            delete this.children[k];
+            _de && fewd.checkDebugStep(this, 'after-child-tree-removing');
+        });
+        _de && fewd.checkDebugStep(this, 'after-end-child-tree-removing');
     }
 
     getNodes()
@@ -832,6 +949,25 @@ class FewEmptyNode extends FewNode
     //             // [...ic, next]
     //     ), [] );
     // }
+    
+
+    applyUpdate() {        
+        try {
+            this.apply();
+        }
+        catch ( err ) {
+
+            if ( err instanceof fewd.Exception ){
+                // err.add( this );
+                console.error( err.message );
+                console.error( 'Stack', err.log() );
+            }
+            else {
+                console.error( err );
+                throw err;
+            }
+        }
+    }
 
     apply( incomingNode, parent, offsetIndex )
     {
@@ -848,6 +984,7 @@ class FewEmptyNode extends FewNode
         this.childrenSeq.forEach( (c) => {
             c.removeDomFrom( parent ); 
         });
+        this.removed = true;
         // this.virtualNode.removeDomFrom( parent );
         // parent.dom.removeChild(this.parent.dom);
     }
@@ -868,7 +1005,7 @@ class FewEmptyNode extends FewNode
 // https://stackoverflow.com/questions/32496825/proper-way-to-dynamically-add-functions-to-es6-classes
 ["div", "input", "label", "span", "form", "textarea", "img", "a", 
     "button", "select", "option", "ul", "ol", "li", "i",
-    "canvas"].forEach((tagName) => {
+    "canvas", "object"].forEach((tagName) => {
     FewNode.prototype[tagName] = function (attribs, inner) {
       return this.tagOpen( tagName, attribs, inner );
     }
@@ -977,7 +1114,7 @@ class FewComponent extends FewNode
     
     _applyAttributes ( attribs )
     {
-        let differences = SetHelper.deepDifference( this.attrs, attribs );
+        let differences = SetHelper.deepDifference( this.attrs, attribs, 1 );
         this.onChangeAttrs( this.attrs, attribs, differences );
         this.attrs = attribs;
     }
@@ -1006,6 +1143,10 @@ class FewComponent extends FewNode
     }
 
     applyUpdate() {
+        if( this.removed )
+        {
+            return;
+        }
         // calculates new state
         let newstate = { ...this.#private_state.state, ...this.nextState || {} };
         // notifies the change status
@@ -1033,7 +1174,7 @@ class FewComponent extends FewNode
             if ( err instanceof fewd.Exception ){
                 // err.add( this );
                 console.error( err.message );
-                console.error( err.log() );
+                console.error( 'Stack', err.log() );
             }
             else {
                 console.error( err );
@@ -1105,8 +1246,12 @@ class FewComponent extends FewNode
         if( !this.virtualNode ) {
             this.onInit();
         }
-        this.incomingVirtual = pthis._callDraw( this );
+        if ( typeof this.attrs.beforeApply === 'function' ){ 
+            this.attrs.beforeApply( this, {...this.state} );
+        }
+            // nextAttrs.debug( nextAttrs ) : nextAttrs.debug;
         try {
+            this.incomingVirtual = pthis._callDraw( this );
             if( !this.virtualNode ) {
                 this.virtualNode = this.incomingVirtual; // .getNode();
                 index = this.virtualNode.apply( false, parent, index );
@@ -1131,6 +1276,9 @@ class FewComponent extends FewNode
                 newExc.add( this );
                 throw newExc;
             }
+        }
+        if ( typeof this.attrs.afterApply === 'function' ){ 
+            this.attrs.afterApply( this, {...this.state} );
         }
         
         nextAttrs = this.attrs;
@@ -1163,13 +1311,13 @@ class FewComponent extends FewNode
         return index;
     }
 
-    removeDomFrom( parent )
-    {
+    removeDomFrom( parent ) {
         this.virtualNode.removeDomFrom( parent );
+        this.removed = true;
+        this.onRemove?.();
     }
 
-    innerRef()
-    {
+    innerRef() {
         return this.newChildrenSeq || this.childrenSeq;
     }
 
@@ -1178,15 +1326,31 @@ class FewComponent extends FewNode
     }
 }
 
-class FewFunctionNode extends FewComponent
-{
-    draw()
-    {
-        // if( !this._f_state )
-        // {
-        //     this._f_state = {};
-        // }
-        return this.f( /*this.nextAttrs ||*/ this.attrs || {}, this.state, this.childrenSeq );
+/**Function node is a wrapper for a function that draws
+ * the component. The function should accept as parameters
+ * attributes passed by parent component
+ * the state of the component
+ * the children of the component
+ */
+class FewFunctionNode extends FewComponent {
+    /**Drawing of a function node is simply made by
+     * calling the function, passing the attributes,
+     * the state of current nodes and children of
+     * this node
+     * 
+     * @returns 
+     */
+    draw() {
+        return this.f(this.attrs || {}, this.state, this.childrenSeq);
+    }
+
+    /**As type method should be used to determine if two node
+     * are the same, returns the pointer to the function.
+     * This is used in applyRemoveDom method to avoid
+     * calling 
+     */
+    get type() {
+        return this.f;
     }
 }
 
@@ -1275,7 +1439,23 @@ const fewd = {
         }
     },
     
-    anonymousCharId: '*'
+    anonymousCharId: '*',
+
+    checkDebugStep: function ( element, eventTriggeredName, args ) {
+
+        if ( element.getAttrs().debugOn === eventTriggeredName ) {
+            fewd.onDebug( element, eventTriggeredName, args );
+            return true;
+        }
+        return false;
+    },
+
+    onDebug: function ( element, eventTriggeredName, args ) {
+        console.warn( `Debug trigger '${eventTriggeredName}' on '${element.key}'.`);
+        if ( args ) {
+            console.warn( args );
+        }
+    }
 }
 
 // function $( selector )
