@@ -12,15 +12,19 @@ if( !fewd )
 fewd.types.SplitPanel = function ( attrs, state, innerChildren )
 {
     let containerDom;
+    let unit = 'px';
+    let position = state.position || attrs.position ? parseInt( attrs.position ) : 200;
     let firstSize = state.position ?
         `${state.position}px`
-        : attrs.position ?
-            `${attrs.position}`
+        : attrs.position !== undefined ?
+            typeof attrs.position === 'number' ? `${attrs.position}px` : `${attrs.position}`
             : `50%`; // default size
+    // let firstSize = `${position}${unit}`;
+    
     let secondSize = state.secondPosition 
         ? `${state.secondPosition}px` 
         :attrs.position ?
-            `calc( 100vw - ${attrs.position} - 32 )`
+            `calc( 100vw - ${position}px - 32px )`
             :  `50%`; // "calc( 50% - 15px )",
     // console.log( attrs.cellWidth * ( state.draggedStart !== undefined ? state.draggedStart : attrs.start ) );
     return e$().div( {
@@ -42,9 +46,10 @@ fewd.types.SplitPanel = function ( attrs, state, innerChildren )
                 width: firstSize,
                 maxWidth: firstSize,
                 minWidth: firstSize,
-                // height: "100%",
+                height: "100%",
                 display: "table-cell"
-            }
+            },
+            classes: 'first-panel-split'
         } )
             .child$( innerChildren?.[0], {
                 style: { 
@@ -66,6 +71,7 @@ fewd.types.SplitPanel = function ( attrs, state, innerChildren )
                 position: "relative",
                 display: "table-cell",
             },
+            classes: 'draggable-separator-split',
             // ...Draggable.setup( {
             //     onMove: (e, state) => {
             //         // update state with dragged position
@@ -83,12 +89,13 @@ fewd.types.SplitPanel = function ( attrs, state, innerChildren )
             Draggable: {
                 onMove: (e, state) => {
                     // update state with dragged position
-                    state.position = e.x;
+                    let newPosition = e.x;
                     
-                    if( state.position < attrs.minSize || 0 )
-                        state.position = attrs.minSize;
+                    if( newPosition < (attrs.minSize || 0) )
+                        newPosition = attrs.minSize;
 
-                    state.secondPosition = containerDom.clientWidth - state.position;
+                    state.position = newPosition;
+                    state.secondPosition = containerDom.parentElement.clientWidth - newPosition - 32;
                 },
                 // onEnd: (e, state) => { attrs.start = state.draggedStart; },
                 state: state,
@@ -105,7 +112,8 @@ fewd.types.SplitPanel = function ( attrs, state, innerChildren )
                 minWidth: secondSize,
                 maxWidth: secondSize,
                 display: "table-cell"
-            }
+            },
+            classes: 'second-panel-split'
         } )
             .child$( innerChildren?.[1], {
                 style: { 

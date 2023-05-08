@@ -1,5 +1,5 @@
 
-if(typeof exports != "undefined"){
+if(typeof require != "undefined"){
     const { FewComponent, FewNode, e$ } = require("../../fewdom/FewDom");
 }
 
@@ -31,6 +31,18 @@ class ModalDialog extends FewComponent
                 spacing: '2px',
                 zIndex: 1000
             } } )
+                // title
+                .div( { style: {
+                    width: '100%',
+                    height: 24,
+                    // marginBottom: 0, 
+                    // position: 'absolute',
+                    // textAlign: 'end',
+                    backgroundColor: '#e1e1f1',
+                    display: this.attrs.title ? "table-row" : 'none',
+                } } )
+                    .span$( { inner: this.attrs.title })
+                .$div()
                 .div( { style: {
                     width: '100%', 
                     // bottom: 0, 
@@ -48,6 +60,7 @@ class ModalDialog extends FewComponent
             
                 .div( { style: {
                     width: '100%', 
+                    height: 60,
                     bottom: 0, 
                     marginBottom: 0, 
                     // position: 'absolute',
@@ -63,6 +76,7 @@ class ModalDialog extends FewComponent
                         // ...!Editor.hasUndo() && {disabled: true},
                         onClick: ()=> {
                             this.attrs.onOk?.();
+                            // this.attrs.onClose?.();
                         }
                     })
                     // cancel
@@ -72,6 +86,7 @@ class ModalDialog extends FewComponent
                         style: {...toolbarButtonStyle},
                         onClick: ()=> { 
                             this.attrs.onCancel?.();
+                            this.attrs.onClose?.();
                         }
                     })
                 .$div()
