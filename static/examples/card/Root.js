@@ -22,34 +22,54 @@ class AppRoot extends FewComponent
                 padding: "10px" 
             } } )
                 // repeats for each element in array list
-                .repeat( this.attrs.list )
+                .child$( this.attrs.list.map( ( entry, index ) => 
                     // it can use CardList$ function as CardList class was registered
                     // CardList has a function instead object in attribs parameter
-                    .CardList$( ( entry, index ) => ({
+                    e$().CardList$( {
                         id: `list${index}`,
                         title: entry.title,
                         cards: entry.cards,
                         color: colors[ index ]
-                    }))
-                .$repeat()
+                    } ) 
+                ) )
             .$div();        // closes the main UI div
     }
 }
 
 // Initializes document root with my app root component class
-FewNode.documentBody( { style: { background: "#E0E0F0" } } )
-    .child(
-        AppRoot, { 
-        name: "Basic component example", 
-        list: [ 
-            {
-                title: "Incoming", 
-                cards: [ 
-                    { name: "first", description: "Few Dom Component can be used to build a structure over a state. Click on header to toggle card collapse. The line setState() will cause the component to redraw." },
-                    { name: "second", description: "Component can be iterable with repeat$ method" } 
-                ] 
-            }, 
-            {title: "Work in progress"}, 
-            {title: "Done"}
-        ]
-    } );
+// FewNode.documentBody( { style: { background: "#E0E0F0" } } )
+//     .child(
+//         AppRoot, { 
+//         name: "Basic component example", 
+//         list: [ 
+//             {
+//                 title: "Incoming", 
+//                 cards: [ 
+//                     { name: "first", description: "Few Dom Component can be used to build a structure over a state. Click on header to toggle card collapse. The line setState() will cause the component to redraw." },
+//                     { name: "second", description: "Component can be iterable with repeat$ method" } 
+//                 ] 
+//             }, 
+//             {title: "Work in progress"}, 
+//             {title: "Done"}
+//         ]
+//     } );
+
+window.onload = async function () {
+    // Initializes the AppRoot gui attaching its node to document body root
+    e$().attach(document.body)
+        .child$(AppRoot, { 
+            name: "Basic component example", 
+            list: [ 
+                {
+                    title: "Incoming", 
+                    cards: [ 
+                        { name: "first", description: "Few Dom Component can be used to build a structure over a state. Click on header to toggle card collapse. The line setState() will cause the component to redraw." },
+                        { name: "second", description: "Component can be iterable with repeat$ method" } 
+                    ] 
+                }, 
+                {title: "Work in progress"}, 
+                {title: "Done"}
+            ]
+        } )
+    .$attach();
+}
