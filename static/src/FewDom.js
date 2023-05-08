@@ -981,7 +981,7 @@ class FewEmptyNode extends FewNode
 
     removeDomFrom( parent )
     {
-        this.childrenSeq.forEach( (c) => {
+        this.childrenSeq?.forEach( (c) => {
             c.removeDomFrom( parent ); 
         });
         this.removed = true;
@@ -1373,6 +1373,7 @@ const fewd = {
             
                 FewNode.prototype[classname] = function (attribs /*, inner*/) {
                     let c = this.child( clazz, attribs );
+                    // TODO: closing tag as a getter to avoid use of ()
                     c[ `$${classname}` ] = ()=>(this);
                     return c;
                 }
@@ -1392,6 +1393,7 @@ const fewd = {
                     }
                     let c = this.child( f/*( attribs, inner )*/, attribs );
                     // let c = this.child$( f, attribs, inner );
+                    // TODO: closing tag as a getter to avoid use of ()
                     c[ `$${name}` ] = ()=>(this);
                     return c;
                 }
@@ -1403,11 +1405,15 @@ const fewd = {
                     return this.child$( f, attribs );
                 }
 
+                // TODO:
+                // return { [name]: ff, `{name}$`: ff$ };
+
             }
             else if( typeof value === 'object' )
             {
                 throw new Error( 'Unsupported component type.');
             }
+
             return Reflect.set(target, name, value, receiver);
         }
     }),
