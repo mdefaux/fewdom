@@ -39,8 +39,9 @@ class Card extends FewComponent
                 })
                     // this tag$ is self-closing, like a void tag
                     .label$( {
-                        style: { margin: "20%", fontWeight: "bold" }
-                    }, this.attrs.name )    // label content
+                        style: { margin: "20%", fontWeight: "bold" },
+                        inner: this.attrs.name
+                    } )    // label content
                 .$div() // closes the title div tag
                 .div( { // opens text content div tag
                     id: "content",
@@ -49,7 +50,7 @@ class Card extends FewComponent
                         // this div is displayed basing on state
                         display: !this.state.hidden ? "block" : "none"
                 }} )
-                    .span$( {}, this.attrs.description )
+                    .span$( { inner: this.attrs.description } )
                 .$div()     // closes the content div
             .$div();        // closes the card div
     }

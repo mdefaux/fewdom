@@ -1,6 +1,6 @@
 
 if(typeof exports != "undefined"){
-const { FewComponent, FewNode } = require("../../src/FewDom");
+const { FewComponent, FewNode, e$ } = require("../../src/FewDom");
 }
 
 const cardListStyle =  {
@@ -51,10 +51,9 @@ class CardList extends FewComponent
                     }
                 } )
                     // for each card in attribute list
-                    .repeat( this.attrs.cards )
-                        .Card$( (card) => (card) )
-                        // .Card$()
-                    .$repeat()
+                    .child$( this.attrs.cards?.map( (card) => 
+                        e$().Card$( card )
+                    ) )
                 .$div()         // closes the content div
             .$div();            // closes the card div
     }
