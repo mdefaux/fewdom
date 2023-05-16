@@ -4,8 +4,8 @@
   "description": "Few lines for dom state management",
   "private": true,
   "scripts": {
-    "start": "node --use_strict index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "webpack serve --open",
     "build": "webpack"
   },
   "repository": {
@@ -26,6 +26,7 @@
     "lint-staged": "^12.4.1",
     "prettier": "^2.6.2",
     "webpack": "^5.82.1",
-    "webpack-cli": "^5.1.1"
+    "webpack-cli": "^5.1.1",
+    "webpack-dev-server": "^4.15.0"
   }
 }

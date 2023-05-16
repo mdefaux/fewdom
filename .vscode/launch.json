@@ -75,5 +75,14 @@
                 "*": "${workspaceFolder}/static/*"
             }
         },
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "Launch Chrome against localhost",
+            "url": "http://localhost:8080",
+            "webRoot": "${workspaceRoot}",
+            "sourceMaps": true,
+            "trace": true
+          }
     ]
 }

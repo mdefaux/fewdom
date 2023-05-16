@@ -1,6 +1,19 @@
 /**
  * 
  * https://webpack.js.org/guides/getting-started/
+    npm install webpack webpack-cli --save-dev
+ * 
+ * html-webpack-plugin:
+    npm install --save-dev html-webpack-plugin
+
+ * 
+    npm install --save-dev webpack-dev-server
+ * replace:
+    "start": "node --use_strict index.js",
+ * with:
+    "start": "webpack serve --open",
+ * https://webpack.js.org/guides/development/
+    
  * 
  * @returns 
  */
