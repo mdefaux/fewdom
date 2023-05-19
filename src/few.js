@@ -1,4 +1,5 @@
 const FewComponent = require("./FewComponent");
+const FewFunctionNode = require("./FewFunctionNode");
 // const FewEmptyNode = require("./FewEmptyNode");
 const {FewNode, FewEmptyNode} = require("./FewNode");
 
@@ -64,9 +65,27 @@ const fewd = {
             }
 
             return Reflect.set(target, name, value, receiver);
+        },
+        get(target, name, receiver) {
+            if (!Reflect.has(target, name)) 
+            {
+                throw new Error( `Unknown type '${name}' already defined.` );
+            }
+            const f = Reflect.get(target, name, receiver);
+            console.log( `Requested '${name}'`);
+            return {
+                [`${name}$`]: function (attribs) {
+                    if( !f.name && !attribs?.typeName )
+                    {
+                        attribs = {...attribs, typeName: name };
+                    }
+                    return fewd.e$().child$( f, attribs );
+                }
+            }
         }
     }),
     Component: FewComponent,
+    FunctionNode: FewFunctionNode,
     e$() 
     {
         return new FewEmptyNode();

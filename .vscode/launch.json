@@ -83,6 +83,15 @@
             "webRoot": "${workspaceRoot}",
             "sourceMaps": true,
             "trace": true
-          }
+        },
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "Card-Done",
+            "url": "http://localhost:8080",
+            "webRoot": "${workspaceRoot}/samples/card-done/src",
+            "sourceMaps": true,
+            "trace": true
+        }
     ]
 }
