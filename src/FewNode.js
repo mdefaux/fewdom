@@ -28,8 +28,8 @@ const FewFactory = require('./FewFactory');
          return this.setup( node, id, def );
      }
  
-     $attach() {
-         this.applyUpdate();
+     get $attach() {
+        return this.applyUpdate(); 
      }
  
      /**Sets the wrapper attributes.

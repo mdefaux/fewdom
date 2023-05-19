@@ -90,6 +90,9 @@ const fewd = {
     {
         return new FewEmptyNode();
     },
+    attach( exhistingObject ) {
+        return fewd.e$().attach( exhistingObject );
+    }
 
     // Exception: class Exception extends Error {
 

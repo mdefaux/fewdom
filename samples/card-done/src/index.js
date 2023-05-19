@@ -43,7 +43,7 @@
  * 
  */
 
-const { Component, e$, div } = require("../../../src/few");
+const { Component, attach, div } = require("../../../src/few");
 const notifierProxy = require("./notifierProxy");
 const { CardList$ } = require( './CardList' );
 
@@ -82,7 +82,7 @@ class AppRoot extends Component
 
 window.onload = async function () {
     // Initializes the AppRoot gui attaching its node to document body root
-    e$().attach(document.body)
+    attach(document.body)
         .child$(AppRoot, { 
             name: "Basic component example", 
             list: [ 
@@ -97,6 +97,6 @@ window.onload = async function () {
                 {title: "Done", cards: [] }
             ]
         } )
-    .$attach();
+    .$attach;
 }
    
