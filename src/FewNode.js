@@ -189,7 +189,15 @@ const FewFactory = require('./FewFactory');
    
        // TODO: adds all closure mehods and checks if closure name match opening
        // closure tag returns to the component parent (actually 'this' component).
-       t[`$${tagName}`] = () => (this);  
+    //    t[`$${tagName}`] = () => (this);  
+        let _this = this;
+
+       Object.defineProperty(t, `$${tagName}`, {
+        get() {
+          return _this;
+        },
+      });
+
        return t;
      }
    

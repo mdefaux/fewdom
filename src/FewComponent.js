@@ -16,7 +16,7 @@ const pthis =
         // TODO: checks Node closure and cardinality
         if( ! (drawNode instanceof FewEmptyNode) ) //  drawNode.getNode?.() )
         {
-            if( drawNode.$div() )
+            if( drawNode.$div )
             {
                 throw new Error( `Missing closing $div() at ${_this.typeName}.` );
             }

@@ -65,9 +65,9 @@ class CardList extends few.Component {
                         }
                     } )
                         .span$( {}, "+" )
-                    .$div()
-                .$div()         // closes the content div
-            .$div();            // closes the card div
+                    .$div
+                .$div         // closes the content div
+            .$div;            // closes the card div
     }
 }
 

@@ -1,8 +1,8 @@
 
 
-const { types, Component, e$, div } = require("../../../src/few");
+const { types, Component, div } = require("../../../src/few");
 const notifierProxy = require("./notifierProxy");
-const { title$ } = require( './Title.js' );
+require( './Title.js' );
 
 const CardStyle =  {
     border: "solid black 1px", 
@@ -28,38 +28,34 @@ class Card extends Component
         let checks = [ "uno", "due", "tre" ];
         // e$() is an empty node to start with
         return div( { style: CardStyle } )
-                // child title div
-                .title$( {text:this.proxy.name } )
-                // opens text content div tag
-                .div( {
-                    id: "content",
-                    style: { 
-                        padding: "30px", 
-                        // this div is displayed basing on state
-                        display: !this.state.hidden ? "block" : "none"
-                }} )
-                    .span$( {
-                        // attributes can specify event management handlers
-                        onClick: ()=>{
-                            // state change will cause the redraw asynchronously
-                            this.proxy.description = "Modified text";
-                            // this.setState( { hidden: !this.state.hidden } );
-                        },
-                    }, this.proxy.description )
-                    // .repeat( checks )
-                    //     .div( { style: {display: "table"} } )
-                    //         .label$( (c) => ( { inner: c } ) )
-                    //     .$div()
-                    // .$repeat()
-                    
-                    .repeat$( checks.map( (c) => (
-                        e$().div( { style: {display: "table"} } )
-                            .input$( { type: 'checkbox' } )
-                            .label$( { inner: c } )
-                        .$div()
-                    )) )
-                .$div()     // closes the content div
-            .$div();        // closes the card div
+            // child title div
+            .title$( {text:this.proxy.name } )
+            // opens text content div tag
+            .div( {
+                id: "content",
+                style: { 
+                    padding: "30px", 
+                    // this div is displayed basing on state
+                    display: !this.state.hidden ? "block" : "none"
+            }} )
+                .span$( {
+                    // attributes can specify event management handlers
+                    onClick: ()=>{
+                        // state change will cause the redraw asynchronously
+                        this.proxy.description = "Modified text";
+                        // this.setState( { hidden: !this.state.hidden } );
+                    },
+                    inner: this.proxy.description
+                } )
+                
+                .child$( checks.map( (c) => 
+                    div( { style: {display: "table"} } )
+                        .input$( { type: 'checkbox' } )
+                        .label$( { inner: c } )
+                    .$div
+                ) )
+            .$div     // closes the content div
+        .$div;        // closes the card div
     }
 }
 
