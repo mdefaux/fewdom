@@ -21,20 +21,8 @@ const Dragged = {
     item: undefined,
     sourceContainer: undefined,
     dropContainer: undefined,
-    clear() { this.item = this.sourceContainer = this.dropContainer = undefined; }
-};
-
-class DragList extends few.Component {
-    // onInit() {
-    //     // subscribes to list.cards proxy for change
-    //     // changes include the reassignment to cards array with a new array
-    //     // for example following line will fire the callback:
-    //     // this.attrs.list.cards = []; 
-    //     this.attrs.list?.subscribeOnChange(() => {
-    //         this.update();
-    //     });
-    // }
-
+    clear() { this.item = this.sourceContainer = this.dropContainer = undefined; },
+    
     dragStart( evt ) {
         
         startX = evt.clientX;
@@ -42,11 +30,11 @@ class DragList extends few.Component {
 
         // this.state.dragging = true;
         evt.stopPropagation();
-        document.addEventListener( 'mouseup', (e)=>this.mouseup(e) );
-        document.addEventListener( 'mousemove', (e)=>this.mousemove(e) );
+        document.addEventListener( 'mouseup', this.mouseup );
+        document.addEventListener( 'mousemove', this.mousemove );
         window.addEventListener( 'dragstart', disableSelect );
         window.addEventListener( 'selectstart', disableSelect );
-    }
+    },
     dragEnd () {
         
         // if ( this.state.dropIndex !== undefined &&
@@ -79,6 +67,7 @@ class DragList extends few.Component {
             Dragged.dropContainer.onItemMove( Dragged.item, Dragged.destIndex );
             Dragged.dropContainer.onDragOut();
         }
+        Dragged.sourceContainer.update();
         Dragged.clear();
         
         dropContainer?.update();
@@ -86,25 +75,39 @@ class DragList extends few.Component {
         document.removeEventListener( 'mousemove', this.mousemove );
         window.removeEventListener( 'dragstart', disableSelect );
         window.removeEventListener( 'selectstart', disableSelect);
-    }
+    },
     mousemove (evt) {
 
-        this.state.mouseX = evt.clientX;
-        this.state.mouseY = evt.clientY;
-        this.state.deltaX = evt.clientX - startX;
-        this.state.deltaY = evt.clientY - startY;
+        Dragged.mouseX = evt.clientX;
+        Dragged.mouseY = evt.clientY;
+        Dragged.deltaX = evt.clientX - startX;
+        Dragged.deltaY = evt.clientY - startY;
+        Dragged.sourceContainer.update();
 
-        if ( Math.abs( this.state.deltaX) > 30 || Math.abs( this.state.deltaY) > 30 ) {
+        if ( Math.abs( Dragged.deltaX) > 30 || Math.abs( Dragged.deltaY) > 30 ) {
 
-            this.state.dragging = true;
+            Dragged.dragging = true;
         }
 
         evt.stopPropagation();
-    }
+    },
     mouseup(evt) {
-        return this.dragEnd( evt );
+        return Dragged.dragEnd( evt );
         // 
     }
+};
+
+class DragList extends few.Component {
+    // onInit() {
+    //     // subscribes to list.cards proxy for change
+    //     // changes include the reassignment to cards array with a new array
+    //     // for example following line will fire the callback:
+    //     // this.attrs.list.cards = []; 
+    //     this.attrs.list?.subscribeOnChange(() => {
+    //         this.update();
+    //     });
+    // }
+
 
     onItemMove(item, position){
         this.attrs.list.splice( position, 0, item );
@@ -154,8 +157,8 @@ class DragList extends few.Component {
                         style: {
                             ...card === Dragged.item ? {
                                 position: 'absolute',
-                                left: `${this.state.mouseX}px`,
-                                top: `${this.state.mouseY}px`,
+                                left: `${Dragged.mouseX}px`,
+                                top: `${Dragged.mouseY}px`,
                                 pointerEvent: 'none',
                                 transform: 'rotate(5deg)',
                                 zIndex: 256
@@ -169,10 +172,10 @@ class DragList extends few.Component {
                             }
                         },                      
                         onMouseDown: !Dragged.item && ((evt) => {
-                            this.dragStart( evt );
                             Dragged.item = card;
                             Dragged.sourceContainer = this;
                             Dragged.sourceIndex = ir;
+                            Dragged.dragStart( evt );
                             this.state.draggedIndex = ir;
                             evt.stopPropagation();
                         }),
@@ -197,13 +200,22 @@ class DragList extends few.Component {
                             inner: 'Drag HERE'
                         } ) )        
                         .Card$( {
-                            key: `element-list-${ir}`,
+                            key: `element-list-${card.id}`,
                             id: card.id, 
                             card: card,
                         })
                     .$div
                 )
             )
+            .div$( {
+                key: 'drop-space-last',
+                style: {
+                    height: '30px'
+                },
+                inner: Dragged.dropContainer === this 
+                    && this.state.dropIndex === undefined ? 
+                    'Drag HERE': ''
+            } )
         .$div;            // closes the card div
     }
 }

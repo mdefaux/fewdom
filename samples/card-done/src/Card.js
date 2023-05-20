@@ -1,7 +1,7 @@
 
 
 const { types, Component, div } = require("../../../src/few");
-const notifierProxy = require("./notifierProxy");
+// const notifierProxy = require("./notifierProxy");
 require( './Title.js' );
 
 const CardStyle =  {
@@ -16,20 +16,20 @@ const CardStyle =  {
 
 class Card extends Component
 {
-    onInit()
-    {
-        this.proxy = notifierProxy( this.attrs.card );
-        this.proxy.subscribeOnChange( () => {
-            this.update();
-        });
-    }
+    // onInit()
+    // {
+    //     this.proxy = notifierProxy( this.attrs.card );
+    //     this.proxy.subscribeOnChange( () => {
+    //         this.update();
+    //     });
+    // }
 
     draw() {
         let checks = [ "uno", "due", "tre" ];
         // e$() is an empty node to start with
         return div( { style: CardStyle } )
             // child title div
-            .title$( {text:this.proxy.name } )
+            .title$( {text:this.attrs.card.name } )
             // opens text content div tag
             .div( {
                 id: "content",
@@ -42,10 +42,10 @@ class Card extends Component
                     // attributes can specify event management handlers
                     onClick: ()=>{
                         // state change will cause the redraw asynchronously
-                        this.proxy.description = "Modified text";
+                        this.attrs.card.description = "Modified text";
                         // this.setState( { hidden: !this.state.hidden } );
                     },
-                    inner: this.proxy.description
+                    inner: this.attrs.card.description
                 } )
                 
                 .child$( checks.map( (c) => 

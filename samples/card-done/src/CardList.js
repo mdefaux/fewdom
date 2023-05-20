@@ -72,7 +72,7 @@ class CardList extends few.Component {
                             ];
                     }
                 } )
-                    .span$( {}, "+" )
+                    .span$( { inner: '+' } )
                 .$div
             .$div         // closes the content div
         .$div;            // closes the card div
