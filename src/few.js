@@ -72,14 +72,21 @@ const fewd = {
                 throw new Error( `Unknown type '${name}' already defined.` );
             }
             const f = Reflect.get(target, name, receiver);
-            console.log( `Requested '${name}'`);
             return {
-                [`${name}$`]: function (attribs) {
-                    if( !f.name && !attribs?.typeName )
-                    {
-                        attribs = {...attribs, typeName: name };
+                [name]: function (attribs) {
+                    if (!f.name && !attribs?.typeName) {
+                        attribs = { ...attribs, typeName: name };
                     }
-                    return fewd.e$().child$( f, attribs );
+                    let c = this.child(f, attribs);
+                    // TODO: closing tag as a getter to avoid use of ()
+                    c[`$${name}`] = () => (this);
+                    return c;
+                },
+                [`${name}$`]: function(attribs) {
+                    if (!f.name && !attribs?.typeName) {
+                        attribs = { ...attribs, typeName: name };
+                    }
+                    return fewd.e$().child$(f, attribs);
                 }
             }
         }
@@ -94,48 +101,6 @@ const fewd = {
         return fewd.e$().attach( exhistingObject );
     }
 
-    // Exception: class Exception extends Error {
-
-    //     add( comp )
-    //     {
-    //         if ( !this.fewdStackTrace )
-    //         {
-    //             this.fewdStackTrace = [];
-    //         }
-    //         this.fewdStackTrace.push( comp );
-    //     }
-
-    //     log()
-    //     {
-    //         return this.fewdStackTrace ? 
-    //             this.fewdStackTrace.map( (e)=> ({
-    //                 key: e.key,
-    //                 attrs: e.attrs,
-    //                 // state: {...e.state.#private_state}
-    //             })) : [];
-    //     }
-    // },
-    
-    /*
-     * MOVED TO FACTORY
-     */
-    // anonymousCharId: '*',
-
-    // checkDebugStep: function ( element, eventTriggeredName, args ) {
-
-    //     if ( element.getAttrs().debugOn === eventTriggeredName ) {
-    //         fewd.onDebug( element, eventTriggeredName, args );
-    //         return true;
-    //     }
-    //     return false;
-    // },
-
-    // onDebug: function ( element, eventTriggeredName, args ) {
-    //     console.warn( `Debug trigger '${eventTriggeredName}' on '${element.key}'.`);
-    //     if ( args ) {
-    //         console.warn( args );
-    //     }
-    // }
 };
 
 
@@ -159,19 +124,5 @@ const fewd = {
     }
 
   });
-
-
-// function e$() {
-//     return new FewEmptyNode();
-// }
-
-// if(typeof exports != "undefined"){
-//     exports._de = _de;
-//     exports.assert = assert;
-//     exports.FewNode = FewNode;    
-//     exports.FewComponent = FewComponent;
-//     exports.fewd = fewd;
-//     exports.e$ = e$;
-// }
 
 module.exports = fewd;

@@ -1,5 +1,5 @@
 
-if(typeof exports != "undefined"){
+if(typeof require != "undefined"){
     const { FewComponent, FewNode, e$ } = require("../../fewdom/FewDom");
 }
 
@@ -13,7 +13,7 @@ fewd.types.TimelineBar = function ( attrs, state )
             border: '1px solid #707070',
             zIndex: state.dragging !== undefined ? 10 : 0,
             borderRadius: '6px',
-            overflow: "auto",
+            overflow: "hidden",
             height: attrs.rowHeight,
             left: attrs.cellWidth * ( state.draggedStart !== undefined ? state.draggedStart : attrs.start ),
             width: attrs.cellWidth * ( state.draggedSize !== undefined ? state.draggedSize : attrs.duration )

@@ -93,8 +93,14 @@ window.onload = async function () {
                         { name: "second", description: "Component can be iterable with repeat$ method" } 
                     ] 
                 }, 
-                {title: "Work in progress", cards: [] }, 
-                {title: "Done", cards: [] }
+                {title: "Work in progress", cards: [ 
+                    { name: "thrird", description: "Few Dom Component can be used to build a structure over a state. Click on header to toggle card collapse. The line setState() will cause the component to redraw." },
+                    { name: "fourth", description: "Component can be iterable with repeat$ method" } 
+                ]  }, 
+                {title: "Done", cards: [ 
+                    { name: "firstB", description: "Few Dom Component can be used to build a structure over a state. Click on header to toggle card collapse. The line setState() will cause the component to redraw." },
+                    { name: "secondB", description: "Component can be iterable with repeat$ method" } 
+                ]  }
             ]
         } )
     .$attach;
