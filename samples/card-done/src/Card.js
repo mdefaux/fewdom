@@ -1,35 +1,42 @@
 
 
 const { types, Component, div } = require("../../../src/few");
-// const notifierProxy = require("./notifierProxy");
 require( './Title.js' );
 
 const CardStyle =  {
     border: "solid black 1px", 
     borderRadius: "8px", 
-    backgroundColor: "#EEEEFF",
+    backgroundColor: "#FFFFF8",
     width: "calc( 100% - 10px )",
     overflow: "hidden",
     fontFamily: "arial",
-    margin: "5px"
+    margin: "5px",
+    position: 'relative',
 };
 
-class Card extends Component
-{
-    // onInit()
-    // {
-    //     this.proxy = notifierProxy( this.attrs.card );
-    //     this.proxy.subscribeOnChange( () => {
-    //         this.update();
-    //     });
-    // }
+const titleBackground = {
+    "Asset Inventory": "#aadfdf",
+    "PPM": "#e3e3a9",
+    "Contratti": "#7f7fe1",
+    "CRM-HDA": "orange",
+    "Acquisti": "rgb(231 125 125)"
+};
+
+class Card extends Component {
 
     draw() {
-        let checks = [ "uno", "due", "tre" ];
+        // let checks = [ "uno", "due", "tre" ];
+        // console.log( this.attrs.dragged );
         // e$() is an empty node to start with
-        return div( { style: CardStyle } )
+        return div( { style: {...CardStyle,
+            width: this.attrs.dragged ? 300 : "calc( 100% - 10px )"
+        } } )
             // child title div
-            .title$( {text:this.attrs.card.name } )
+            .title$( {text:this.attrs.card.name,
+                style: {
+                    backgroundColor: titleBackground[ this.attrs.card.name ] || '#AAAAAA'
+                } 
+            } )
             // opens text content div tag
             .div( {
                 id: "content",
@@ -47,13 +54,23 @@ class Card extends Component
                     },
                     inner: this.attrs.card.description
                 } )
+                .span$( {
+                    style: { 
+                        position: 'absolute',
+                        top: 4,
+                        right: 20,
+                        fontSize: '2em',
+                        color: '#AA0000'
+                    },
+                    inner: this.attrs.card.points || '??'
+                } )
                 
-                .child$( checks.map( (c) => 
-                    div( { style: {display: "table"} } )
-                        .input$( { type: 'checkbox' } )
-                        .label$( { inner: c } )
-                    .$div
-                ) )
+                // .child$( checks.map( (c) => 
+                //     div( { style: {display: "table"} } )
+                //         .input$( { type: 'checkbox' } )
+                //         .label$( { inner: c } )
+                //     .$div
+                // ) )
             .$div     // closes the content div
         .$div;        // closes the card div
     }

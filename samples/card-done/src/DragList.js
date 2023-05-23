@@ -21,7 +21,18 @@ const Dragged = {
     item: undefined,
     sourceContainer: undefined,
     dropContainer: undefined,
-    clear() { this.item = this.sourceContainer = this.dropContainer = undefined; },
+    dragging: false,
+    clear() { 
+        this.item = undefined;
+        this.sourceContainer = undefined;
+        this.dropContainer = undefined;
+        this.dragging = false;
+        
+        this.startX = undefined;
+        this.startY = undefined; 
+        this.deltaX = undefined; 
+        this.deltaY = undefined;
+    },
     
     dragStart( evt ) {
         
@@ -62,9 +73,16 @@ const Dragged = {
         // this.state.dropIndex = undefined;
         // this.state.dragging = false;
         let dropContainer =  Dragged.dropContainer;
-        if( Dragged.dropContainer && Dragged.sourceContainer ) {
+        if( Dragged.dragging && Dragged.dropContainer && Dragged.sourceContainer ) {
             Dragged.sourceContainer.onItemRemove( Dragged.sourceIndex );
-            Dragged.dropContainer.onItemMove( Dragged.item, Dragged.destIndex );
+            if ( Dragged.sourceContainer === Dragged.dropContainer 
+                && Dragged.destIndex > Dragged.sourceIndex ) 
+            {
+                Dragged.dropContainer.onItemMove( Dragged.item, Dragged.destIndex-1 );
+            }
+            else {
+                Dragged.dropContainer.onItemMove( Dragged.item, Dragged.destIndex );
+            }
             Dragged.dropContainer.onDragOut();
         }
         Dragged.sourceContainer.update();
@@ -98,16 +116,6 @@ const Dragged = {
 };
 
 class DragList extends few.Component {
-    // onInit() {
-    //     // subscribes to list.cards proxy for change
-    //     // changes include the reassignment to cards array with a new array
-    //     // for example following line will fire the callback:
-    //     // this.attrs.list.cards = []; 
-    //     this.attrs.list?.subscribeOnChange(() => {
-    //         this.update();
-    //     });
-    // }
-
 
     onItemMove(item, position){
         this.attrs.list.splice( position, 0, item );
@@ -132,13 +140,13 @@ class DragList extends few.Component {
         return div( {
             style: {...dragListStyle, ...this.attrs.style,
                 ...this === Dragged.dropContainer ? {
-                    border: '1px solid red'
+                    border: '1px solid #EEEEFF'
                 } : {
-                    border: 'none'
+                    border: '1px solid #FFFFFF'
                 }
             },
             onMouseMove: () => {
-                if ( Dragged.sourceContainer && Dragged.dropContainer !== this ) {
+                if ( Dragged.dragging && Dragged.sourceContainer && Dragged.dropContainer !== this ) {
                     Dragged.dropContainer?.onDragOut();
                     Dragged.dropContainer = this;
                     this.state.dropIndex = this.attrs.list.lenght;
@@ -152,10 +160,10 @@ class DragList extends few.Component {
         } )
             // for each card in attribute list
             .child$( this.attrs.list
-                .map( (card, ir) =>
+                .map( (item, ir) =>
                     div( {
                         style: {
-                            ...card === Dragged.item ? {
+                            ...Dragged.dragging && item === Dragged.item ? {
                                 position: 'absolute',
                                 left: `${Dragged.mouseX}px`,
                                 top: `${Dragged.mouseY}px`,
@@ -172,14 +180,14 @@ class DragList extends few.Component {
                             }
                         },                      
                         onMouseDown: !Dragged.item && ((evt) => {
-                            Dragged.item = card;
+                            Dragged.item = item;
                             Dragged.sourceContainer = this;
                             Dragged.sourceIndex = ir;
                             Dragged.dragStart( evt );
                             this.state.draggedIndex = ir;
                             evt.stopPropagation();
                         }),
-                        onMouseOver: card !== Dragged.item && ((evt) => {
+                        onMouseOver: item !== Dragged.item && ((evt) => {
                             // if ( this.state.dragging ){
                             //     this.state.dropIndex = ir;
                             // }
@@ -187,23 +195,26 @@ class DragList extends few.Component {
                                 Dragged.dropContainer = this;
                                 Dragged.destIndex = ir;
                                 this.state.dropIndex = ir;
-                                console.log( `drop index: '${ir}'.`);
+                                // console.log( `drop index: '${ir}'.`);
                             }
                             evt.stopPropagation();
                         }),
                     })
-                        .child$( this.state.dropIndex === ir && div$( {
+                        .child$( Dragged.dragging && this.state.dropIndex === ir && div$( {
                             key: 'drop-space-between',
                             style: {
                                 height: '50px'
                             },
                             inner: 'Drag HERE'
-                        } ) )        
-                        .Card$( {
-                            key: `element-list-${card.id}`,
-                            id: card.id, 
-                            card: card,
-                        })
+                        } ) )
+                        .child$( this.attrs.foreach( item ), {
+                            dragged: Dragged.dragging && item === Dragged.item
+                        } )
+                        // .Card$( {
+                        //     key: `element-list-${item.id}`,
+                        //     id: item.id, 
+                        //     card: item,
+                        // })
                     .$div
                 )
             )
@@ -212,7 +223,7 @@ class DragList extends few.Component {
                 style: {
                     height: '30px'
                 },
-                inner: Dragged.dropContainer === this 
+                inner: Dragged.dragging && Dragged.dropContainer === this 
                     && this.state.dropIndex === undefined ? 
                     'Drag HERE': ''
             } )

@@ -33,7 +33,7 @@ class CardList extends few.Component {
             .div( {         // opens cards container div
                 key: "content",
                 style: { 
-                    padding: "10px", 
+                    // padding: "10px", 
                     // this div is displayed basing on state
                     display: !this.state.hidden ? "block" : "none"
                 }
@@ -47,9 +47,15 @@ class CardList extends few.Component {
                 .DragList$( {
                     list: this.attrs.list.cards,
                     style: { padding: '0px' },
-                    onArray: (arr) => { this.attrs.list.cards = arr; }
+                    onArray: (arr) => { this.attrs.list.cards = arr; },
                     // onItemMove: (item, position)=>{},
                     // onItemRemove: (position)=>{}
+                    foreach: ( card ) =>         
+                        Card$( {
+                            key: `element-list-${card.id}`,
+                            id: card.id,
+                            card: card,
+                        })
                 } )
                 // adds the plus button to add cards to the list
                 .div( {

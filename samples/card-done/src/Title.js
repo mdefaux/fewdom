@@ -7,7 +7,8 @@ types.title = function (attrs) {
         style: {
             width: "100%",
             backgroundColor: attrs.color || "#DEDEFF",
-            padding: "10px"
+            padding: "10px",
+            ...attrs.style
         },
         // attributes can specify event management handlers
         onClick: attrs.onClick,
