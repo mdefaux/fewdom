@@ -1,5 +1,6 @@
 {
-  "name": "fewdom",
+  "name": "flod",
+  "main": "dist/flod.js",
   "version": "1.0.0",
   "description": "Few lines for dom state management",
   "private": true,

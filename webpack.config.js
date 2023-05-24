@@ -1,21 +1,16 @@
 const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
-    mode: 'development',
-    entry: './src/index.js',
-    devtool: 'inline-source-map',
-    devServer: {
-        static: './dist',
-    },
-    plugins: [
-        new HtmlWebpackPlugin({
-            title: 'Flod Example',
-        }),
-    ],
+    // mode: 'development',
+    entry: './src/few.js',
     output: {
-        filename: '[name].bundle.js',
         path: path.resolve(__dirname, 'dist'),
+        filename: 'flod.js',
+        globalObject: 'this',
+        library: {
+            name: 'flod',
+            type: 'umd',
+        },
         clean: true
     },
 };
