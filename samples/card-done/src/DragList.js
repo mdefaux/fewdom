@@ -1,6 +1,6 @@
 
 const few = require("../../../src/few");
-const { div, div$ } = few;
+const { div, div$, append} = few;
 
 require( './Card' );
 
@@ -87,6 +87,7 @@ const Dragged = {
         }
         Dragged.sourceContainer.update();
         Dragged.clear();
+        rootDragGhost.apply( div$() );
         
         dropContainer?.update();
         document.removeEventListener( 'mouseup', this.mouseup );
@@ -115,6 +116,8 @@ const Dragged = {
     }
 };
 
+let rootDragGhost;
+
 class DragList extends few.Component {
 
     onItemMove(item, position){
@@ -136,6 +139,33 @@ class DragList extends few.Component {
     }
 
     draw() {
+        if ( Dragged.dragging && Dragged.sourceContainer === this ) {
+            if ( !rootDragGhost ){
+                rootDragGhost = append(document.body, 'drag-list-dragged-item-ghost-container', 'div' )
+            }
+
+            rootDragGhost.apply( 
+                div( {
+                    key: 'drag-list-dragged-item-ghost',
+                    style: {
+                            position: 'absolute',
+                            left: `${Dragged.mouseX}px`,
+                            top: `${Dragged.mouseY}px`,
+                            pointerEvent: 'none',
+                            transform: 'rotate(5deg)',
+                            zIndex: 256,
+
+                            // width: 256, height: 200, backgroundColor: 'coral'
+                        }
+                    }
+                )
+                    .child$( this.attrs.foreach( this.attrs.list[ Dragged.sourceIndex ] ), {
+                        dragged: true
+                    } )
+                .$div
+            )
+        }
+
         // e$() is an empty node to start with
         return div( {
             style: {...dragListStyle, ...this.attrs.style,
@@ -164,19 +194,22 @@ class DragList extends few.Component {
                     div( {
                         style: {
                             ...Dragged.dragging && item === Dragged.item ? {
-                                position: 'absolute',
-                                left: `${Dragged.mouseX}px`,
-                                top: `${Dragged.mouseY}px`,
-                                pointerEvent: 'none',
-                                transform: 'rotate(5deg)',
-                                zIndex: 256
+                                // position: 'absolute',
+                                // left: `${Dragged.mouseX}px`,
+                                // top: `${Dragged.mouseY}px`,
+                                // pointerEvent: 'none',
+                                // transform: 'rotate(5deg)',
+                                // zIndex: 256
+                                position: 'relative',
+                                opacity: '0.5'
                             }:{
                                 position: 'relative',
                                 left: '0px',
                                 top: '0px',
                                 pointerEvent: 'all',
                                 transform: 'rotate(0deg)',
-                                zIndex: 0
+                                zIndex: 0,
+                                opacity: '1'
                             }
                         },                      
                         onMouseDown: !Dragged.item && ((evt) => {
@@ -208,7 +241,7 @@ class DragList extends few.Component {
                             inner: 'Drag HERE'
                         } ) )
                         .child$( this.attrs.foreach( item ), {
-                            dragged: Dragged.dragging && item === Dragged.item
+                            // dragged: Dragged.dragging && item === Dragged.item
                         } )
                         // .Card$( {
                         //     key: `element-list-${item.id}`,

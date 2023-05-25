@@ -97,8 +97,17 @@ const fewd = {
     {
         return new FewEmptyNode();
     },
-    attach( exhistingObject ) {
-        return fewd.e$().attach( exhistingObject );
+    attach( existingObject ) {
+        return fewd.e$().attach( existingObject );
+    },
+    append(parent, id, tagName) {
+        let node = document.getElementById(id);
+        if (!node) {
+            node = document.createElement(tagName);
+            node.id = id;
+            parent.appendChild( node );
+        }
+        return fewd.e$().setup(node, id);
     }
 
 };

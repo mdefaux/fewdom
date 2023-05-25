@@ -9,29 +9,33 @@ const FewFactory = require('./FewFactory');
 /**Virtual node, an element of the virtual dom tree structure.
  * 
  */
- class FewNode 
- {
-     constructor()
-     {
-     }
- 
-     setup( node, id, def )
-     {
-         this.dom = node;
-         this.id = id || node?.id || def?.id;
-         this.def = def;
- 
-         return this;
-     }
- 
-     attach( node, id, def ) {
-         return this.setup( node, id, def );
-     }
- 
-     get $attach() {
-        return this.applyUpdate(); 
-     }
- 
+class FewNode {
+    constructor() {
+    }
+
+    setup(node, id, def) {
+        this.dom = node;
+        this.id = id || node?.id || def?.id;
+        this.def = def;
+        this.key = this.id;
+
+        return this;
+    }
+
+    attach(node, id, def) {
+        return this.setup(node, id, def);
+    }
+
+    get $attach() {
+        return this.applyUpdate();
+    }
+
+
+    get $append() {
+        // let a = b;
+        return this.applyUpdate();
+    }
+
      /**Sets the wrapper attributes.
       * 
       * @param {*} attrs 
