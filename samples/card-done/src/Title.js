@@ -20,7 +20,7 @@ types.title = function (attrs) {
             style: { margin: "10%", fontWeight: "bold" },
             inner: attrs.text
         })    // label content
-        .$div         // closes the title div tag
+    .$div         // closes the title div tag
 }
 
 module.exports = types.title;

@@ -55,7 +55,7 @@ class CardList extends few.Component {
                             key: `element-list-${card.id}`,
                             id: card.id,
                             card: card,
-                        })
+                        } )
                 } )
                 // adds the plus button to add cards to the list
                 .div( {
