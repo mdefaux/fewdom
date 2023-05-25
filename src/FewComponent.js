@@ -162,7 +162,7 @@ class Component extends FewNode
         }
         catch ( err ) {
 
-            if ( err instanceof fewd.Exception ){
+            if ( err instanceof FewFactory.types.Exception ){
                 // err.add( this );
                 console.error( err.message );
                 console.error( 'Stack', err.log() );
@@ -257,12 +257,12 @@ class Component extends FewNode
         }
         catch ( err ) {
 
-            if ( err instanceof fewd.Exception ) {
+            if ( err instanceof FewFactory.types.Exception ) {
                 err.add( this );
                 throw err;
             }
             else {
-                let newExc = new fewd.Exception();
+                let newExc = new FewFactory.types.Exception();
                 newExc.message = err.message;
                 newExc.add( this );
                 throw newExc;
@@ -281,7 +281,7 @@ class Component extends FewNode
         let debugTrigger = typeof nextAttrs.debug === 'function' ? 
             nextAttrs.debug( nextAttrs ) : nextAttrs.debug;
         if ( debugTrigger === 'exception' ) {
-            let ex = new fewd.Exception();
+            let ex = new FewFactory.types.Exception();
             ex.add( this );
             throw ex;
         }
