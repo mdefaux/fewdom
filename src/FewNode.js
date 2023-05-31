@@ -187,23 +187,22 @@ class FewNode {
       * @returns the new created child tag that can be chained with 
       * its children definition list.
       */
-     tagOpen( tagName, attributes )
-     {
-       let t = this.tag( tagName, attributes );
-   
-       // TODO: adds all closure mehods and checks if closure name match opening
-       // closure tag returns to the component parent (actually 'this' component).
-    //    t[`$${tagName}`] = () => (this);  
+    tagOpen(tagName, attributes) {
+        let t = this.tag(tagName, attributes);
+
+        // TODO: adds all closure mehods and checks if closure name match opening
+        // closure tag returns to the component parent (actually 'this' component).
+        //    t[`$${tagName}`] = () => (this);  
         let _this = this;
 
-       Object.defineProperty(t, `$${tagName}`, {
-        get() {
-          return _this;
-        },
-      });
+        Object.defineProperty(t, `$${tagName}`, {
+            get() {
+                return _this;
+            },
+        });
 
-       return t;
-     }
+        return t;
+    }
    
      tagVoid( tagName, attributes )
      {

@@ -44,7 +44,13 @@ const fewd = {
                     let c = this.child( f/*( attribs, inner )*/, attribs );
                     // let c = this.child$( f, attribs, inner );
                     // TODO: closing tag as a getter to avoid use of ()
-                    c[ `$${name}` ] = ()=>(this);
+                    // c[ `$${name}` ] = ()=>(this);
+                    let _this = this;
+                    Object.defineProperty(c, `$${name}`, {
+                        get() {
+                            return _this;
+                        },
+                    });
                     return c;
                 }
                 FewNode.prototype[`${name}$`] = function (attribs) {
@@ -79,7 +85,14 @@ const fewd = {
                     }
                     let c = this.child(f, attribs);
                     // TODO: closing tag as a getter to avoid use of ()
-                    c[`$${name}`] = () => (this);
+                    // c[`$${name}`] = () => (this);
+                    
+                    let _this = this;
+                    Object.defineProperty(c, `$${name}`, {
+                        get() {
+                            return _this;
+                        },
+                    });
                     return c;
                 },
                 [`${name}$`]: function(attribs) {
