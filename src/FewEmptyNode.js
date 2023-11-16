@@ -1,4 +1,5 @@
 const {FewNode} = require("./FewNode");
+const {FewFactory} = require("./FewFactory")
 
 
 class FewEmptyNode extends FewNode
@@ -34,7 +35,7 @@ class FewEmptyNode extends FewNode
         }
         catch ( err ) {
 
-            if ( err instanceof fewd.Exception ){
+            if ( err instanceof FewFactory.types.Exception ){
                 // err.add( this );
                 console.error( err.message );
                 console.error( 'Stack', err.log() );
