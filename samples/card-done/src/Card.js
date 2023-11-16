@@ -2,6 +2,7 @@
 
 const { types, Component, div } = require("../../../src/few");
 require( './Title.js' );
+require( './EditableText.js' );
 
 const CardStyle =  {
     border: "solid black 1px", 
@@ -25,44 +26,35 @@ const titleBackground = {
 class Card extends Component {
 
     draw() {
-        // let checks = [ "uno", "due", "tre" ];
-        // console.log( this.attrs.dragged );
-        // e$() is an empty node to start with
-        return div( { style: {...CardStyle,
-            width: this.attrs.dragged ? 300 : "calc( 100% - 10px )"
-        } } )
+        return div( { 
+            style: {
+                ...CardStyle,
+                width: this.attrs.dragged ? 300 : "calc( 100% - 10px )"
+            },
+        } )
             // child title div
-            .title$( {text:this.attrs.card.name,
+            .title( {
+                text: this.attrs.card.name,
                 style: {
                     backgroundColor: titleBackground[ this.attrs.card.name ] || '#AAAAAA'
-                } 
+                }
             } )
+                // .span$( {inner: 'buu'} )
+            .$title
             // opens text content div tag
             .div( {
                 id: "content",
                 style: { 
-                    padding: "30px", 
-                    // this div is displayed basing on state
-                    display: !this.state.hidden ? "block" : "none"
-            }} )
-                .span$( {
-                    // attributes can specify event management handlers
-                    onClick: ()=>{
-                        // state change will cause the redraw asynchronously
-                        this.attrs.card.description = "Modified text";
-                        // this.setState( { hidden: !this.state.hidden } );
-                    },
-                    inner: this.attrs.card.description
-                } )
-                .span$( {
-                    style: { 
-                        position: 'absolute',
-                        top: 4,
-                        right: 20,
-                        fontSize: '2em',
-                        color: '#AA0000'
-                    },
-                    inner: this.attrs.card.points || '??'
+                    minHeigth: 128,
+                    fontFamily: 'arial',
+                    fontSize: '20px'
+                }
+            } )
+                .EditableText$( {
+                    value: this.attrs.card.description,
+                    onChange: (newValue) => {
+                        this.attrs.card.description = newValue;
+                    }
                 } )
                 
                 // .child$( checks.map( (c) => 
@@ -72,6 +64,16 @@ class Card extends Component {
                 //     .$div
                 // ) )
             .$div     // closes the content div
+            .span$( {
+                style: { 
+                    position: 'absolute',
+                    top: 4,
+                    right: 20,
+                    fontSize: '2em',
+                    color: '#AA0000'
+                },
+                inner: this.attrs.card.points || '??'
+            } )
         .$div;        // closes the card div
     }
 }

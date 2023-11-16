@@ -87,7 +87,7 @@ const Dragged = {
         }
         Dragged.sourceContainer.update();
         Dragged.clear();
-        rootDragGhost.apply( div$() );
+        rootDragGhost?.apply( div$() );
         
         dropContainer?.update();
         document.removeEventListener( 'mouseup', this.mouseup );
