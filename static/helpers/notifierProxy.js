@@ -107,6 +107,10 @@ function notifierProxy( obj, parent, id )
             {
                 return subs[ name ] = notifierProxy( value, ref.proxy, name );
             }
+            if( value && typeof value === 'function' )
+            {
+                return value.bind( target );
+            }
             return value;
         },
         set(target, name, value, receiver) 
