@@ -83,14 +83,12 @@ const fewd = {
                     if (!f.name && !attribs?.typeName) {
                         attribs = { ...attribs, typeName: name };
                     }
-                    let c = this.child(f, attribs);
-                    // TODO: closing tag as a getter to avoid use of ()
-                    // c[`$${name}`] = () => (this);
-                    
-                    let _this = this;
+                    let e = fewd.e$();  // creates a an empty node
+                    let c = e.child(f, attribs);    // uses defined function 
+                    // adds the closure tag that returns the root 'e' node
                     Object.defineProperty(c, `$${name}`, {
                         get() {
-                            return _this;
+                            return e;
                         },
                     });
                     return c;
@@ -99,6 +97,7 @@ const fewd = {
                     if (!f.name && !attribs?.typeName) {
                         attribs = { ...attribs, typeName: name };
                     }
+                    // no closure tag needed, the child$ function returns the empty node
                     return fewd.e$().child$(f, attribs);
                 }
             }
