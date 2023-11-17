@@ -204,10 +204,6 @@ class Component extends FewNode
         {
             this.onInit();
         }
-        
-        // **************
-        // this.incomingVirtual = pthis._callDraw( this );
-
         return [this]; // rootDom;
     }
 
@@ -242,17 +238,17 @@ class Component extends FewNode
         }
             // nextAttrs.debug( nextAttrs ) : nextAttrs.debug;
         try {
-            this.incomingVirtual = pthis._callDraw( this );
+            let incomingVirtual = pthis._callDraw( this );
             if( !this.virtualNode ) {
-                this.virtualNode = this.incomingVirtual; // .getNode();
+                this.virtualNode = incomingVirtual; // .getNode();
                 index = this.virtualNode.apply( false, parent, index );
                 
                 this.onCreate();
+                typeof this.afterCreate === 'function' && this.afterCreate();
             }
             else {
-                // this.incomingVirtual = pthis._callDraw( this );
                 
-                index = this.virtualNode.apply( this.incomingVirtual, parent, index );
+                index = this.virtualNode.apply( incomingVirtual, parent, index );
             }
         }
         catch ( err ) {
@@ -303,9 +299,10 @@ class Component extends FewNode
     }
 
     removeDomFrom( parent ) {
+        // this.virtualNode.cascadeRemove();
         this.virtualNode.removeDomFrom( parent );
         this.removed = true;
-        this.onRemove?.();
+        // this.onRemove?.();
     }
 
     innerRef() {

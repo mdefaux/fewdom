@@ -6,6 +6,8 @@ const FewFactory = require('./FewFactory');
 
 // const AbstractNode = require("./AbstractNode");
 
+let uidCount = 0;
+
 /**Virtual node, an element of the virtual dom tree structure.
  * 
  */
@@ -600,6 +602,7 @@ class FewNode {
              {
                  throw new Error( `Child '${key}' is instance of unsupported type '${typeof childDefinition}'.` );
              }
+             virtualNode.uid = (uidCount++).toString(16).padStart(6, '0');
          }
          
          if( attrs?.key )
@@ -859,6 +862,7 @@ class FewNode {
              // so sould not be destroyed but
              if ( /*true ||*/ !n.moved) {
                  n.removeDomFrom(parent);
+                 n.cascadeRemove();
                  // parent.dom.removeChild(n.dom);
              } else {
                  // the node was moved to another parent, resets the moved flag
@@ -871,16 +875,36 @@ class FewNode {
          });
          _de && FewFactory.checkDebugStep(this, 'after-end-child-tree-removing');
      }
- 
-     getNodes()
-     {
-         return !this.childrenSeq ? [] : this.childrenSeq.reduce( (ic, next) => (
-             next instanceof FewEmptyNode ?
-                 [...ic, ...next.getNodes() ] 
-                 :
-                 [...ic, next]
-         ), [] );
-     }
+
+    /**Recursively call onRemove callbacks for each descent
+     * 
+     * @returns 
+     */
+    cascadeRemove() {
+        if (this.virtualNode) {
+            this.virtualNode.cascadeRemove();
+        }
+        else if (this.children) {
+            // Object.entries(this.children).forEach(([k, n]) => {
+            for( let [,n] of Object.entries(this.children)) {
+                n.cascadeRemove();
+            }
+        }
+        try {
+            this.onRemove?.();
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    getNodes() {
+        return !this.childrenSeq ? [] : this.childrenSeq.reduce((ic, next) => (
+            next instanceof FewEmptyNode ?
+                [...ic, ...next.getNodes()]
+                :
+                [...ic, next]
+        ), []);
+    }
  }
  
 
