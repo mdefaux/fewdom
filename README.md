@@ -1,4 +1,4 @@
-# flod
+# Flods
 Few lines of dom state management
 
 ## Purpose

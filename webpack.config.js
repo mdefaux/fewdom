@@ -6,10 +6,10 @@ module.exports = {
     entry: './src/few.js',
     output: {
         path: path.resolve(__dirname, 'dist'),
-        filename: 'flod.js',
+        filename: 'flods.js',
         globalObject: 'this',
         library: {
-            name: 'flod',
+            name: 'flods',
             type: 'umd',
         },
         clean: true

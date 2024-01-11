@@ -14,7 +14,7 @@ module.exports = {
     },
     plugins: [
         new HtmlWebpackPlugin({
-            title: 'Flod Example',
+            title: 'Flods Example',
         }),
     ],
     output: {
