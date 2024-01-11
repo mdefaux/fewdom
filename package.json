@@ -3,7 +3,6 @@
   "main": "dist/flod.js",
   "version": "0.1.0",
   "description": "Few lines for dom state management",
-  "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "webpack serve --open",
