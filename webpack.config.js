@@ -2,6 +2,7 @@ const path = require('path');
 
 module.exports = {
     // mode: 'development',
+    mode: 'production',
     entry: './src/few.js',
     output: {
         path: path.resolve(__dirname, 'dist'),
