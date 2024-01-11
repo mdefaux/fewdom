@@ -1,7 +1,7 @@
 {
   "name": "flods",
   "main": "dist/flods.js",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Few lines for dom state management",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
