@@ -1,6 +1,6 @@
 {
   "name": "flods",
-  "main": "dist/flods.js",
+  "main": "src/few.js",
   "version": "0.1.1",
   "description": "Few lines for dom state management",
   "scripts": {
