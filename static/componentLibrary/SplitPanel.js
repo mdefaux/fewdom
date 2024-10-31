@@ -53,6 +53,7 @@ fewd.types.SplitPanel = function ( attrs, state, innerChildren )
         } )
             .child$( innerChildren?.[0], {
                 style: { 
+                    ...innerChildren[0].nextAttrs.style,
                     width: firstSize,
                     maxWidth: firstSize,
                     minWidth: firstSize,

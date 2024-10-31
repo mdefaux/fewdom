@@ -3,6 +3,18 @@ if(typeof require != "undefined"){
     const { FewComponent, FewNode, e$ } = require("../../fewdom/FewDom");
 }
 
+// import toolbarButtonStyle from "../../editor/js/components/Toolbar_style.js"
+
+const toolbarButtonStyle = {
+    width: 48,
+    minWidth: '48px',
+    height: '48px',
+    margin: 2,
+    padding: 1,
+    fontSize: '10px',
+    position: 'relative'
+}
+
 const modalDialogButtonStyle = {
     width: 128,
     height: 48,
