@@ -1,9 +1,14 @@
+/**
+ * xxxx file
+ */
+import {types, e$} from '/fewdom/few.js'
+
 
 // if(typeof exports != "undefined"){
 //     const { FewComponent, FewNode, e$ } = require("../../fewdom/FewDom");
 // }
 
-fewd.types.TableList = function ( attrs, state, innerChildren )
+types.TableList = function ( attrs, state, innerChildren )
 {
     if ( !attrs.style.width ) {
         throw new fewd.Exception( `Mandatory attribute 'style.width' is '${attrs.style.width}' in '${this.key}'.` )
@@ -59,8 +64,8 @@ fewd.types.TableList = function ( attrs, state, innerChildren )
                         // } 
                     )
                 )) )
-            .$div()
+            .$div
         )) )
         // .child$( innerChildren )
-    .$div();
+    .$div;
 }

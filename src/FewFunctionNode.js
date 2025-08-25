@@ -1,6 +1,10 @@
-const FewComponent = require("./FewComponent");
+/**
+ * 
+ */
 
-const FewFactory = require('./FewFactory');
+import FewComponent from "./FewComponent.js";
+
+import FewFactory from './FewFactory.js';
 
 /**Function node is a wrapper for a function that draws
  * the component. The function should accept as parameters
@@ -32,4 +36,4 @@ const FewFactory = require('./FewFactory');
 
 FewFactory.types.FewFunctionNode = FewFunctionNode;
 
-module.exports = FewFunctionNode;
+export default FewFunctionNode;

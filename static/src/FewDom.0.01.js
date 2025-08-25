@@ -223,14 +223,14 @@ class FewNode
         tag( 'div', {} )
             .label$( { title: 'First child' } )
             .label$( { title: 'Second child' } )
-        .$div
+        .$div()
      * However this method is generally not used directly but with 
      * method shortcuts:
      * @example 
         div( {} )
             .label$( { title: 'First child' } )
             .label$( { title: 'Second child' } )
-        .$div
+        .$div()
      * 
      * @param {*} tagName - name of the element tag
      * @param {*} attributes - attributes of the element
@@ -260,7 +260,7 @@ class FewNode
         div( {} )
             .child$( FirstChildComponentClass, { title: 'First child' } )
             .child$( SecondChildComponentClass, { title: 'Second child' } )
-        .$div
+        .$div()
      * 
      * It accepts an array as parameter:
      * @example 
@@ -270,7 +270,7 @@ class FewNode
                     e$().ul$( { inner: arrayElement } ) 
                 ) ) 
             )
-        .$div
+        .$div()
      * 
      * child$ method accept undefined or null childObject parameters: in this
      * case it will no affects the children sequence.  This can be useful for
@@ -385,7 +385,6 @@ class FewNode
      */
     _applyAttributes ( attribs ) {
         _de&&assert( attribs );
-        _de&&assert( typeof attribs === 'object' );
         _de&&assert( this.dom );
 
         if ( typeof attribs.onApply === 'function' ) {
@@ -833,54 +832,21 @@ class FewNode
             return {...idMap, [ch.key]: ch };
         }, {} );
 
-        // Returns the next index after the last child index
-        // Was previously index+1 but increment is done by concrete child
-        // index+1 caused the problem seen in TreeCtrl when every expansion
-        // increments the position of the next expansion
-        return index;
-    }
-
-    remove( ) {
-        this.removed = true;
-        if ( typeof this.onRemove === 'function' ) {
-            this.onRemove();
-        }
-    }
-
-    /** Recursively removes all children virtual-nodes
-     * 
-     */
-    cascadeRemove() {
-        
-        // for each child in current node
-        Object.entries(this.children || {}).forEach(([, n]) => {
-            _de && fewd.checkDebugStep(this, 'before-child-tree-removing', n.key);
-            
-            n.cascadeRemove(); // ++++++++++++++++++++++++++
-            n.removeDomFrom(this /*parent */ );
-            // removes the node from current node children list
-            // delete this.children[k];
-            _de && fewd.checkDebugStep(this, 'after-child-tree-removing');
-        });
-        // remove itself
-        this.remove();
+        // returns the next index after the last child index
+        return index + 1;
     }
 
     removeDomFrom( parent )
     {
-        if ( !this.dom ) {
-            return;
-        }
-
         _de && assert(this.dom);
-        _de && assert(this.dom.parentNode /*parent.dom*/);
+        _de && assert(parent.dom);
 
-        if ( parent?.dom === this.dom.parentNode ) {
+        if ( parent.dom === this.dom.parentNode ) {
 
             parent.dom.removeChild(this.dom);
         }
         else { 
-            this.dom.parentNode.removeChild(this.dom);
+            //this.dom.parentNode.removeChild(this.dom);
         }
 
         delete this.dom;
@@ -933,8 +899,7 @@ class FewNode
             // checks a particular case: the node has been moved to another parent
             // so sould not be destroyed but
             if ( /*true ||*/ !n.moved) {
-                n.cascadeRemove(); // ++++++++++++++++++++++++++
-                // n.removeDomFrom(parent);
+                n.removeDomFrom(parent);
                 // parent.dom.removeChild(n.dom);
             } else {
                 // the node was moved to another parent, resets the moved flag
@@ -1014,15 +979,15 @@ class FewEmptyNode extends FewNode
         return this.applyChildren( incomingNode, parent, offsetIndex );
     }
 
-    // removeDomFrom( parent )
-    // {
-    //     this.childrenSeq?.forEach( (c) => {
-    //         c.removeDomFrom( parent ); 
-    //     });
-    //     this.removed = true;
-    //     // this.virtualNode.removeDomFrom( parent );
-    //     // parent.dom.removeChild(this.parent.dom);
-    // }
+    removeDomFrom( parent )
+    {
+        this.childrenSeq?.forEach( (c) => {
+            c.removeDomFrom( parent ); 
+        });
+        this.removed = true;
+        // this.virtualNode.removeDomFrom( parent );
+        // parent.dom.removeChild(this.parent.dom);
+    }
 
     copy( dest )
     {
@@ -1060,7 +1025,7 @@ const pthis =
         // TODO: checks Node closure and cardinality
         if( ! (drawNode instanceof FewEmptyNode) ) //  drawNode.getNode?.() )
         {
-            if( drawNode.$div )
+            if( drawNode.$div() )
             {
                 throw new Error( `Missing closing $div() at ${_this.typeName}.` );
             }
@@ -1202,7 +1167,7 @@ class FewComponent extends FewNode
 
             // this.index = this.virtualNode.apply( drawNode, this.parent, this.index );
             // this.index = this.virtualNode.apply( false, this.parent, this.index );
-            this.index = this.apply( false, this.parent ); // , this.index );
+            this.index = this.apply( false, this.parent, this.index );
         }
         catch ( err ) {
 
@@ -1346,17 +1311,10 @@ class FewComponent extends FewNode
         return index;
     }
 
-    // removeDomFrom( parent ) {
-    //     this.virtualNode.removeDomFrom( parent );
-    //     this.removed = true;
-    //     this.onRemove?.();
-    // }
-    
-    cascadeRemove() {
-        
-        this.virtualNode.cascadeRemove();
-        // remove itself
-        this.remove();
+    removeDomFrom( parent ) {
+        this.virtualNode.removeDomFrom( parent );
+        this.removed = true;
+        this.onRemove?.();
     }
 
     innerRef() {
@@ -1383,8 +1341,6 @@ class FewFunctionNode extends FewComponent {
      * @returns 
      */
     draw() {
-        // 
-        this.f.bind( this );
         return this.f(this.attrs || {}, this.state, this.childrenSeq);
     }
 

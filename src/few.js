@@ -1,11 +1,11 @@
-const FewComponent = require("./FewComponent");
-const FewFunctionNode = require("./FewFunctionNode");
+import FewComponent from "./FewComponent.js";
+import FewFactory from "./FewFactory.js";
+import FewFunctionNode from "./FewFunctionNode.js";
 // const FewEmptyNode = require("./FewEmptyNode");
-const {FewNode, FewEmptyNode} = require("./FewNode");
+import {FewNode, FewEmptyNode} from "./FewNode.js";
 
-
-
-const fewd = {
+// export { fewd };
+export const fewd = {
     types: new Proxy( {}, {
         set(target, name, value, receiver) {
             if (Reflect.has(target, name)) 
@@ -105,7 +105,8 @@ const fewd = {
     }),
     Component: FewComponent,
     FunctionNode: FewFunctionNode,
-    e$() 
+    Node: FewNode,
+    e$: function () 
     {
         return new FewEmptyNode();
     },
@@ -120,8 +121,21 @@ const fewd = {
             parent.appendChild( node );
         }
         return fewd.e$().setup(node, id);
-    }
-
+    },
+    $query( querySelector ) {
+        var n = typeof querySelector === 'string' ?
+            document.querySelector(querySelector) : querySelector;
+        
+        _de&&assert( n );
+        var wrapped = new FewNode()
+        wrapped.setup( n );
+        return wrapped;
+    },
+    create( xmlString ) {
+        return FewNode.create( xmlString );
+    },
+    customAttribs: FewFactory.customAttribs,
+    CustomAttribute: FewFactory.types.CustomAttribute,
 };
 
 
@@ -146,4 +160,45 @@ const fewd = {
 
   });
 
-module.exports = fewd;
+// export function e$() 
+// {
+//     return new FewEmptyNode();
+// }
+
+// export {fewd, e$};
+// export { fewd.types as };
+// export default fewd;
+// export default fewd.types
+// export default fewd.e$;
+export const { 
+    types,
+    e$, 
+    Component,
+    FunctionNode,
+    Node,
+    $query,
+    create,
+    attach,
+    append,
+    customAttribs,
+    CustomAttribute,
+    div, div$,
+    input, input$,
+    label, label$, 
+    span, span$,
+    form, form$,
+    textarea, textarea$,
+    img, img$,
+    a, a$,
+    button, button$, 
+    select, select$, 
+    option, option$, 
+    ul, ul$, 
+    ol, ol$, 
+    li, li$, 
+    i, i$, 
+    canvas, canvas$, 
+    object, object$, 
+} = fewd;
+
+export default fewd;

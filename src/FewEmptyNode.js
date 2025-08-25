@@ -1,5 +1,9 @@
-const {FewNode} = require("./FewNode");
-const {FewFactory} = require("./FewFactory")
+/**
+ * EmptyNode.js file
+ */
+
+import {FewNode} from "./FewNode.js";
+import {FewFactory} from "./FewFactory.js"
 
 
 class FewEmptyNode extends FewNode
@@ -78,4 +82,4 @@ class FewEmptyNode extends FewNode
     }    
 }
 
-module.exports = FewEmptyNode;
+export default FewEmptyNode;

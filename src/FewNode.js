@@ -1,6 +1,9 @@
 
-const { _de, assert } = require( './deassert' );
-const FewFactory = require('./FewFactory');
+/**
+ * 
+ */
+import { _de, assert } from  './deassert.js' ;
+import FewFactory from './FewFactory.js';
 // const FewEmptyNode = require('./FewEmptyNode');
 // const FewFunctionNode = require('./FewFunctionNode');
 
@@ -175,14 +178,14 @@ class FewNode {
          tag( 'div', {} )
              .label$( { title: 'First child' } )
              .label$( { title: 'Second child' } )
-         .$div()
+         .$div
       * However this method is generally not used directly but with 
       * method shortcuts:
       * @example 
          div( {} )
              .label$( { title: 'First child' } )
              .label$( { title: 'Second child' } )
-         .$div()
+         .$div
       * 
       * @param {*} tagName - name of the element tag
       * @param {*} attributes - attributes of the element
@@ -219,7 +222,7 @@ class FewNode {
          div( {} )
              .child$( FirstChildComponentClass, { title: 'First child' } )
              .child$( SecondChildComponentClass, { title: 'Second child' } )
-         .$div()
+         .$div
       * 
       * It accepts an array as parameter:
       * @example 
@@ -229,7 +232,7 @@ class FewNode {
                      e$().ul$( { inner: arrayElement } ) 
                  ) ) 
              )
-         .$div()
+         .$div
       * 
       * child$ method accept undefined or null childObject parameters: in this
       * case it will no affects the children sequence.  This can be useful for
@@ -355,12 +358,13 @@ class FewNode {
          }
  
          Object.entries( attribs ).forEach( ([name,value]) => {
-             if ( name === 'Draggable' ) {
+             if ( FewFactory.customAttribs[ name ] /*name === 'Draggable'*/ ) {
                  if ( !this.customAttrib ) {
                      this.customAttrib = {};
                  }
                  if ( !this.customAttrib[ name ] ) {
-                     this.customAttrib[ name ] = new Draggable();
+                    return;
+                     this.customAttrib[ name ] = new (FewFactory.customAttribs[ name ])();
                  }
                  attribs = {
                      ...attribs, 
@@ -391,12 +395,12 @@ class FewNode {
                  this.dom.value = (value !== undefined ? value : null);
                  return;
              }
-             else if ( name === 'Draggable' ) {
+             else if ( FewFactory.customAttribs[ name ] /*name === 'Draggable'*/ ) {
                  if ( !this.customAttrib ) {
                      this.customAttrib = {};
                  }
                  if ( !this.customAttrib[ name ] ) {
-                     this.customAttrib[ name ] = new Draggable();
+                     this.customAttrib[ name ] = new FewFactory.customAttribs[ name ]();
                      this.customAttrib[ name ].setup( this, this.attrs );
                  }
              }
@@ -987,4 +991,4 @@ class FewEmptyNode extends FewNode
 }
 
 
-module.exports = {FewNode:FewNode, FewEmptyNode: FewEmptyNode};
+export {FewNode, FewEmptyNode};

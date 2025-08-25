@@ -5,4 +5,4 @@ class AbstractNode {
     }
 }
 
-module.exports = AbstractNode;
+export default AbstractNode;

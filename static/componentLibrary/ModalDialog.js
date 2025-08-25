@@ -1,7 +1,7 @@
-
-if(typeof require != "undefined"){
-    const { FewComponent, FewNode, e$ } = require("../../fewdom/FewDom");
-}
+/**
+ * ModalDialog file
+ */
+import {types, e$, Component} from '/fewdom/few.js'
 
 // import toolbarButtonStyle from "../../editor/js/components/Toolbar_style.js"
 
@@ -21,11 +21,7 @@ const modalDialogButtonStyle = {
     margin: 2
 }
 
-class ModalDialog extends FewComponent
-{
-    onCreate() {
-        Editor.mainToolbar = this;
-    }
+class ModalDialog extends Component {
     
     draw() {
         // e$() is an empty node to start with
@@ -41,7 +37,7 @@ class ModalDialog extends FewComponent
                 height: '50vh',
                 padding: "2px",
                 spacing: '2px',
-                zIndex: 1000
+                zIndex: '2'
             } } )
                 // title
                 .div( { style: {
@@ -54,7 +50,7 @@ class ModalDialog extends FewComponent
                     display: this.attrs.title ? "table-row" : 'none',
                 } } )
                     .span$( { inner: this.attrs.title })
-                .$div()
+                .$div
                 .div( { style: {
                     width: '100%', 
                     // bottom: 0, 
@@ -68,7 +64,7 @@ class ModalDialog extends FewComponent
                     //     updateCallback: this.attrs.onOk
                     // } )
                     .child$( this.innerRef() )
-                .$div()
+                .$div
             
                 .div( { style: {
                     width: '100%', 
@@ -101,10 +97,10 @@ class ModalDialog extends FewComponent
                             this.attrs.onClose?.();
                         }
                     })
-                .$div()
-            .$div();        // closes the main UI div
+                .$div
+            .$div;        // closes the main UI div
     }
 }
 
 
-fewd.types.ModalDialog = ModalDialog;
+types.ModalDialog = ModalDialog;

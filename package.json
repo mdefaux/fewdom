@@ -1,6 +1,7 @@
 {
   "name": "flods",
   "main": "src/few.js",
+  "type": "module",
   "version": "0.1.2",
   "description": "Few lines for dom state management",
   "scripts": {

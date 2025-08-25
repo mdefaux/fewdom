@@ -1,5 +1,8 @@
 
-const FewFactory = {
+/**
+ * Few Node factory
+ */
+export const FewFactory = {
 
     types: {
         FewFunctionNode: undefined,
@@ -27,6 +30,10 @@ const FewFactory = {
                     })) : [];
             }
         },
+
+        CustomAttribute: class CustomAttribute {
+            
+        }
     },
 
     create( /*type*/ ) {
@@ -51,7 +58,11 @@ const FewFactory = {
         if ( args ) {
             console.warn( args );
         }
+    },
+
+    customAttribs: {
+
     }
 }
 
-module.exports = FewFactory;
+export default FewFactory;

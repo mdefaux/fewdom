@@ -1,9 +1,12 @@
-
-const { _de, assert } = require( './deassert' );
-// const FewEmptyNode = require('./FewEmptyNode');
-const {FewNode, FewEmptyNode} = require('./FewNode');
-const FewFactory = require('./FewFactory');
-const SetHelper = require('./SetHelper');
+/**
+ * FewComponent.js file
+ * 
+ */
+import { _de, assert } from  './deassert.js' ;
+// const FewEmptyNode from './FewEmptyNode');
+import {FewNode, FewEmptyNode} from './FewNode.js';
+import FewFactory from './FewFactory.js';
+import SetHelper from './SetHelper.js';
 
 const pthis = 
 {
@@ -250,6 +253,10 @@ class Component extends FewNode
                 
                 index = this.virtualNode.apply( incomingVirtual, parent, index );
             }
+
+            if ( typeof this.afterUpdate === 'function' ) {
+                this.afterUpdate();
+            }
         }
         catch ( err ) {
 
@@ -316,4 +323,4 @@ class Component extends FewNode
 
 FewFactory.types.Component = Component;
 
-module.exports = Component;
+export default Component;

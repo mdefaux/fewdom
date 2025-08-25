@@ -1,9 +1,11 @@
 
+import {customAttribs, CustomAttribute} from '/fewdom/few.js'
+
 /**
  * 
  * https://javascript.info/mouse-drag-and-drop
  */
- class Draggable {
+ class Draggable extends CustomAttribute {
 
     setup( virtualNode, attrs ) {
 
@@ -50,3 +52,5 @@
         this.onEnd?.(e, this.state);
     }
 }
+
+customAttribs[ "Draggable" ] = Draggable;

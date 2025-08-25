@@ -1,15 +1,18 @@
+/**
+ * xxxx file
+ */
+import {types, e$} from '/fewdom/few.js'
+
 
 /* 
  * Everything you should know about ‘module’ & ‘require’ in Node.js
  * https://www.freecodecamp.org/news/require-module-in-node-js-everything-about-module-require-ccccd3ad383/ 
  */
 
-if( !fewd )
-    fewd = typeof exports != "undefined" ? require("../../fewdom/FewDom") : fewd;
 // if( !Draggable ) 
 //     Draggable = require("../../helpers/Draggable")
 
-fewd.types.SplitPanel = function ( attrs, state, innerChildren )
+types.SplitPanel = function ( attrs, state, innerChildren )
 {
     let containerDom;
     let unit = 'px';
@@ -59,7 +62,7 @@ fewd.types.SplitPanel = function ( attrs, state, innerChildren )
                     minWidth: firstSize,
                 }
             } )
-        .$div()
+        .$div
         // draggable separator
         .div( {
             style: {
@@ -103,7 +106,7 @@ fewd.types.SplitPanel = function ( attrs, state, innerChildren )
                 instance: {}
             }
         } )
-        .$div()
+        .$div
         // second panel
         .div( {
             style: {
@@ -123,6 +126,6 @@ fewd.types.SplitPanel = function ( attrs, state, innerChildren )
                     minWidth: secondSize,
                 }
             } )
-        .$div()
-    .$div()
+        .$div
+    .$div
 }

@@ -47,4 +47,4 @@
     }
 }
 
-module.exports = SetHelper;
+export default SetHelper;

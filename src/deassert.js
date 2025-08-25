@@ -12,4 +12,4 @@ function assert(condition, message, noException ) {
     }
 }
 
-module.exports = { _de: _de, assert: assert}
+export { _de, assert}
