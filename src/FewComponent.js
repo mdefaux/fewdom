@@ -157,24 +157,26 @@ class Component extends FewNode
         // TODO: this.updateSubscribers?.forEach( (c) => (c()) );
         // this.updateSubscribers = [];
         
-        try {
+        // try {
 
             // this.index = this.virtualNode.apply( drawNode, this.parent, this.index );
             // this.index = this.virtualNode.apply( false, this.parent, this.index );
             this.index = this.apply( false, this.parent, this.index );
-        }
-        catch ( err ) {
+        // }
+        // catch ( err ) {
 
-            if ( err instanceof FewFactory.types.Exception ){
-                // err.add( this );
-                console.error( err.message );
-                console.error( 'Stack', err.log() );
-            }
-            else {
-                console.error( err );
-                throw err;
-            }
-        }
+        //     if ( err instanceof FewFactory.types.Exception ){
+        //         // err.add( this );
+        //         console.error( err.message );
+        //         console.error( err.stack );
+        //         console.error( 'Stack', err.log() );
+        //         throw err;
+        //     }
+        //     else {
+        //         console.error( err );
+        //         throw err;
+        //     }
+        // }
 
         // TODO: afterChangeState( oldState )
     }
@@ -220,11 +222,16 @@ class Component extends FewNode
         {
             nextAttrs = nextAttrs( this.argvalue, this.argIndex );
         }
-        // TODO: handle children sequence!
-        if( newDef?.childrenSeq?.length > 0 )
-        {
+        // handle children sequence!
+        // if there are children in new definition
+        if( newDef?.childrenSeq?.length > 0 ) {
             // this.newChildrenSeq = newDef.childrenSeq;
             this.childrenSeq = newDef.childrenSeq;
+
+        } else if( newDef && this.childrenSeq && this.childrenSeq.length > 0 ) {
+            // checks if new definition does not have children and currently there are...
+            // removes all children from component
+            this.childrenSeq = undefined;
         }
 
         // changes attributes, if requested, then resets change request
@@ -240,7 +247,7 @@ class Component extends FewNode
             this.attrs.beforeApply( this, {...this.state} );
         }
             // nextAttrs.debug( nextAttrs ) : nextAttrs.debug;
-        try {
+        // try {
             let incomingVirtual = pthis._callDraw( this );
             if( !this.virtualNode ) {
                 this.virtualNode = incomingVirtual; // .getNode();
@@ -257,20 +264,20 @@ class Component extends FewNode
             if ( typeof this.afterUpdate === 'function' ) {
                 this.afterUpdate();
             }
-        }
-        catch ( err ) {
+        // }
+        // catch ( err ) {
 
-            if ( err instanceof FewFactory.types.Exception ) {
-                err.add( this );
-                throw err;
-            }
-            else {
-                let newExc = new FewFactory.types.Exception();
-                newExc.message = err.message;
-                newExc.add( this );
-                throw newExc;
-            }
-        }
+        //     if ( err instanceof FewFactory.types.Exception ) {
+        //         err.add( this );
+        //         throw err;
+        //     }
+        //     else {
+        //         let newExc = new FewFactory.types.Exception();
+        //         newExc.message = err.message;
+        //         newExc.add( this );
+        //         throw newExc;
+        //     }
+        // }
         if ( typeof this.attrs.afterApply === 'function' ){ 
             this.attrs.afterApply( this, {...this.state} );
         }
