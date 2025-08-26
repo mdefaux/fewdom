@@ -395,6 +395,10 @@ class FewNode {
                  this.dom.value = (value !== undefined ? value : null);
                  return;
              }
+             else if ( name === "text" ) {
+                 this.dom.textContent = (value !== undefined ? value : null);
+                 return;
+             }
              else if ( FewFactory.customAttribs[ name ] /*name === 'Draggable'*/ ) {
                  if ( !this.customAttrib ) {
                      this.customAttrib = {};
@@ -708,6 +712,11 @@ class FewNode {
          // if ( typeof this.attrs.beforeApply === 'function' ){ 
          //     this.attrs.beforeApply( this, {...this.state} );
          // }
+         
+         
+         if ( typeof nextAttrs?.beforeApply === 'function' ){ 
+             nextAttrs.beforeApply( this, {...this.state} );
+         }
  
          // applies virtual dom modifications to children, taking this as a parent
          this.applyChildren( incomingNode, this, 0 );
@@ -715,10 +724,6 @@ class FewNode {
  
          // changes attributes
          this._applyAttributes( nextAttrs || {} );
-         
-         if ( typeof this.attrs.beforeApply === 'function' ){ 
-             this.attrs.beforeApply( this, {...this.state} );
-         }
  
  
          if ( typeof this.attrs.afterApply === 'function' ){ 
