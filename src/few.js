@@ -144,7 +144,7 @@ export const fewd = {
 // https://stackoverflow.com/questions/32496825/proper-way-to-dynamically-add-functions-to-es6-classes
 ["div", "input", "label", "span", "form", "textarea", "img", "a", 
     "button", "select", "option", "ul", "ol", "li", "i",
-    "canvas", "object"].forEach((tagName) => {
+    "canvas", "object", "svg"].forEach((tagName) => {
     FewNode.prototype[tagName] = function (attribs, inner) {
       return this.tagOpen( tagName, attribs, inner );
     }
@@ -199,6 +199,7 @@ export const {
     i, i$, 
     canvas, canvas$, 
     object, object$, 
+    svg, svg$,
 } = fewd;
 
 export default fewd;
