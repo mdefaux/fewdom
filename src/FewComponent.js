@@ -106,12 +106,30 @@ class Component extends FewNode
         return true;
     }
     
-    _applyAttributes ( attribs )
-    {
-        let differences = SetHelper.deepDifference( this.attrs, attribs, 1 );
+    
+    get attrsChange() {
+        return null;
+    }
+
+    _applyAttributes ( attribs ) {
         const oldAttrs = this.attrs || {};
         this.attrs = attribs;
-        this.onChangeAttrs( oldAttrs, this.attrs, differences );
+
+        const attributeSubscribed = this.attrsChange;
+
+        if ( attributeSubscribed && attributeSubscribed.length > 0 ) {
+
+            attributeSubscribed.forEach( (attr) => {
+                if ( this.attrs[ attr ] !== oldAttrs[ attr ] ) {
+                    this.onChangeAttrs( oldAttrs, this.attrs, { [attr]: { old: oldAttrs[ attr ], new: this.attrs[ attr ] } } );
+                }
+            });
+            return;
+        }
+        else {
+            // let differences = SetHelper.deepDifference( this.attrs, attribs, 1 );
+            this.onChangeAttrs( oldAttrs, this.attrs /*, differences*/ );
+        }
     }
 
     setState( newstate )
@@ -213,6 +231,15 @@ class Component extends FewNode
         return [this]; // rootDom;
     }
 
+    /**Applies the component to the DOM. If there is no virtual node, creates it by calling draw() 
+     * and applying the result. If there is already a virtual node, applies the new one to the old one. 
+     * Returns the new index of the component in the parent children sequence.
+     * 
+     * @param {*} newDef 
+     * @param {*} parent 
+     * @param {*} index 
+     * @returns 
+     */
     apply( newDef, parent, index )
     {
         this.parent = parent;
