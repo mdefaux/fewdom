@@ -671,13 +671,17 @@ class FewNode {
          _de&&assert( parent?.dom );
          _de&&assert( offsetIndex !== undefined );
          _de&&assert( !isNaN(offsetIndex) );
+
+         let created = false;
          // creates if not exists
-         if( !this.dom )
-         {
-             if( this.tagName )
-                 this.dom = document.createElement( this.tagName );
-             else if( this.xml )
+         if (!this.dom) {
+             if (this.tagName) {
+                 this.dom = document.createElement(this.tagName);
+                 created = true;
+             } else if( this.xml ) {
                  this.dom = FewNode.create( this.xml );
+                 created = true;
+             }
                  
              this.moveToParent( parent, offsetIndex );
          }
@@ -728,6 +732,10 @@ class FewNode {
  
          if ( typeof this.attrs.afterApply === 'function' ){ 
              this.attrs.afterApply( this, {...this.state} );
+         }
+
+         if ( created && typeof this.attrs?.onCreate === 'function' ) {
+             this.attrs.onCreate( this );
          }
  
          return offsetIndex + 1;
