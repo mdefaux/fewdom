@@ -109,8 +109,9 @@ class Component extends FewNode
     _applyAttributes ( attribs )
     {
         let differences = SetHelper.deepDifference( this.attrs, attribs, 1 );
-        this.onChangeAttrs( this.attrs, attribs, differences );
+        const oldAttrs = this.attrs || {};
         this.attrs = attribs;
+        this.onChangeAttrs( oldAttrs, this.attrs, differences );
     }
 
     setState( newstate )
@@ -310,6 +311,10 @@ class Component extends FewNode
         // this.onCreate();
 
         return index;
+    }
+
+    get dom() {
+        return this.virtualNode?.childrenSeq?.[0].dom;
     }
 
     removeDomFrom( parent ) {
