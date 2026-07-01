@@ -123,7 +123,7 @@ function notifierProxy( obj, parent, id )
             if( Array.isArray( value ) )
             {
                 // https://stackoverflow.com/questions/51096547/how-to-get-the-target-of-a-javascript-proxy
-                value = value.map( (v) => (  Object.assign({}, v) ) );
+                // value = value.map( (v) => (  Object.assign({}, v) ) );
             }
             else if( typeof value === 'object' )
             {
@@ -135,8 +135,12 @@ function notifierProxy( obj, parent, id )
             const valueChange = { key: name, value: value };
             if( subs[ name ] )
             {
-                subs[ name ] = subs[ name ].transferDelegate( value, ref.proxy );
-                subs[ name ].fireNotify( valueChange );
+                if ( value && typeof value === 'object' ){
+                    subs[ name ] = subs[ name ].transferDelegate( value, ref.proxy );
+                    subs[ name ].fireNotify( valueChange );
+                } else {
+                    delete subs[ name ];
+                }
             }
             fireNotify( valueChange );
             recursiveCallback( valueChange );
@@ -157,4 +161,4 @@ function notifierProxy( obj, parent, id )
     return ref.proxy;
 }
 
-module.exports = notifierProxy;
+// module.exports = notifierProxy;
